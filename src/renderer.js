@@ -324,6 +324,49 @@ export class Renderer {
     }
 
     /**
+     * Draw seeker target indicator
+     */
+    drawSeekerTarget(target) {
+        const { x, y } = target;
+
+        // Pulsing animation
+        const time = Date.now() / 200;
+        const pulse = Math.sin(time) * 0.3 + 0.7;
+
+        // Outer circle
+        this.ctx.strokeStyle = '#9b59b6';
+        this.ctx.lineWidth = 2;
+        this.ctx.globalAlpha = pulse;
+
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, 20, 0, Math.PI * 2);
+        this.ctx.stroke();
+
+        // Inner crosshair
+        this.ctx.strokeStyle = '#9b59b6';
+        this.ctx.lineWidth = 2;
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(x - 15, y);
+        this.ctx.lineTo(x - 5, y);
+        this.ctx.moveTo(x + 5, y);
+        this.ctx.lineTo(x + 15, y);
+        this.ctx.moveTo(x, y - 15);
+        this.ctx.lineTo(x, y - 5);
+        this.ctx.moveTo(x, y + 5);
+        this.ctx.lineTo(x, y + 15);
+        this.ctx.stroke();
+
+        this.ctx.globalAlpha = 1.0;
+
+        // Label
+        this.ctx.font = '12px Arial';
+        this.ctx.fillStyle = '#9b59b6';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('TARGET', x, y - 25);
+    }
+
+    /**
      * Draw text with shadow
      */
     drawText(text, x, y, size = 20, color = '#fff') {

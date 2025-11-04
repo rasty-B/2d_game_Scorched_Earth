@@ -4,7 +4,7 @@
  */
 
 export class Projectile {
-    constructor(x, y, angle, power, weapon, gravity, wind) {
+    constructor(x, y, angle, power, weapon, gravity, wind, seekerTarget = null) {
         this.x = x;
         this.y = y;
         this.prevX = x;
@@ -14,6 +14,7 @@ export class Projectile {
         this.weapon = weapon;
         this.gravity = gravity;
         this.wind = wind;
+        this.seekerTarget = seekerTarget; // Specific target for seeker missiles
 
         // Calculate initial velocity
         const speed = (power / 100) * 15 * (weapon.speed || 1.0);
@@ -97,28 +98,42 @@ export class Projectile {
      * Apply homing behavior
      */
     applyHoming(tanks) {
-        let closestTank = null;
-        let closestDist = Infinity;
+        let targetX, targetY;
 
-        // Find closest enemy tank
-        for (let tank of tanks) {
-            if (!tank.isAlive) continue;
+        // Use specific seeker target if set, otherwise find closest tank
+        if (this.seekerTarget) {
+            targetX = this.seekerTarget.x;
+            targetY = this.seekerTarget.y;
+        } else {
+            let closestTank = null;
+            let closestDist = Infinity;
 
-            const dx = tank.x - this.x;
-            const dy = tank.y - this.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
+            // Find closest enemy tank
+            for (let tank of tanks) {
+                if (!tank.isAlive) continue;
 
-            if (dist < closestDist && dist < this.weapon.homingRange) {
-                closestDist = dist;
-                closestTank = tank;
+                const dx = tank.x - this.x;
+                const dy = tank.y - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < closestDist && dist < this.weapon.homingRange) {
+                    closestDist = dist;
+                    closestTank = tank;
+                }
             }
+
+            if (!closestTank) return;
+
+            targetX = closestTank.x;
+            targetY = closestTank.y;
         }
 
-        if (closestTank) {
-            const dx = closestTank.x - this.x;
-            const dy = closestTank.y - this.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
+        // Calculate direction to target
+        const dx = targetX - this.x;
+        const dy = targetY - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
 
+        if (dist > 0) {
             // Apply subtle correction
             const strength = this.weapon.homingStrength || 0.05;
             this.vx += (dx / dist) * strength;

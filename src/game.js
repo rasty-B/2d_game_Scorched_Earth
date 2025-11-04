@@ -202,6 +202,7 @@ export class Game {
                 isAI,
                 'medium'
             );
+            console.log(`Tank ${i}: isAI=${isAI}, color=${colors[i % colors.length]}`);
             this.tanks.push(tank);
         }
         console.log('Tanks created:', this.tanks.length);
@@ -255,6 +256,8 @@ export class Game {
             this.projectile.update(dt * 60, this.terrain, this.tanks);
 
             if (!this.projectile.active) {
+                console.log('Projectile became inactive - impact detected');
+
                 // Projectile hit something
                 const explosion = this.projectile.onImpact(
                     this.projectile.x,
@@ -264,6 +267,7 @@ export class Game {
                 );
 
                 if (explosion) {
+                    console.log('Creating explosion');
                     this.explosions.push({
                         ...explosion,
                         age: 0,
@@ -286,6 +290,7 @@ export class Game {
                 }
 
                 // End turn after short delay
+                console.log('Will call endTurn in 1000ms');
                 setTimeout(() => {
                     this.endTurn();
                 }, 1000);
@@ -446,7 +451,12 @@ export class Game {
      */
     fireWeapon(angle, power) {
         const currentTank = this.getCurrentTank();
-        if (!currentTank) return;
+        if (!currentTank) {
+            console.error('fireWeapon: No current tank!');
+            return;
+        }
+
+        console.log(`Firing weapon: Tank ${currentTank.id}, angle=${angle.toFixed(2)}, power=${power.toFixed(1)}`);
 
         this.projectile = new Projectile(
             currentTank.x,
@@ -459,14 +469,28 @@ export class Game {
         );
 
         this.state = 'animating';
+        console.log('State changed to animating');
     }
 
     /**
      * Execute AI turn
      */
     executeAITurn(tank) {
-        if (this.projectile || this.state !== 'playing') return;
+        console.log('executeAITurn called for tank', tank.id);
+        console.log('Current state:', this.state);
+        console.log('Projectile exists:', !!this.projectile);
 
+        if (this.projectile) {
+            console.log('Skipping AI turn - projectile already exists');
+            return;
+        }
+
+        if (this.state !== 'playing') {
+            console.log('Skipping AI turn - state is not playing:', this.state);
+            return;
+        }
+
+        console.log('AI calculating shot...');
         const enemyTanks = this.tanks.filter(t => t !== tank);
         const shot = tank.ai.calculateShot(
             tank,
@@ -476,12 +500,15 @@ export class Game {
             this.currentWeapon
         );
 
+        console.log('AI shot calculated:', shot);
         tank.angle = shot.angle;
         this.ui.updateAngle(shot.angle);
         this.ui.updatePower(shot.power);
 
         // Fire after short delay
+        console.log('AI will fire in 500ms...');
         setTimeout(() => {
+            console.log('AI firing now!');
             this.fireWeapon(shot.angle, shot.power);
         }, 500);
     }
@@ -490,9 +517,14 @@ export class Game {
      * End current turn
      */
     endTurn() {
+        console.log('endTurn called');
+
         // Check for game over
         const aliveTanks = this.tanks.filter(t => t.isAlive);
+        console.log('Alive tanks:', aliveTanks.length);
+
         if (aliveTanks.length <= 1) {
+            console.log('Game over!');
             this.endGame(aliveTanks[0]);
             return;
         }
@@ -502,18 +534,26 @@ export class Game {
             this.currentTankIndex = (this.currentTankIndex + 1) % this.tanks.length;
         } while (!this.getCurrentTank().isAlive);
 
+        const currentTank = this.getCurrentTank();
+        console.log('Next turn: Tank', currentTank.id, 'isAI:', currentTank.isAI);
+
         // Generate new wind
         this.wind = generateWind(this.stage.windRange);
 
         this.state = 'playing';
+        this.projectile = null; // Clear projectile
+        console.log('State set to playing, projectile cleared');
+
         this.updateUI();
 
         // Check if next tank is AI and trigger its turn
-        const currentTank = this.getCurrentTank();
         if (currentTank && currentTank.isAI) {
+            console.log('Next tank is AI, will execute turn in 1500ms');
             setTimeout(() => {
                 this.executeAITurn(currentTank);
             }, 1500);
+        } else {
+            console.log('Next tank is human player');
         }
     }
 

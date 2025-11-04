@@ -1,0 +1,181 @@
+
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║              🎮 SCORCHED EARTH ARTILLERY GAME 🎮              ║
+║                    Version 2.0 - Complete                     ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 HOW TO START THE GAME
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: Open Terminal/Command Prompt
+
+STEP 2: Navigate to game directory:
+   cd /path/to/2d_game_Scorched_Earth
+
+STEP 3: Run the launcher:
+
+   🐧 Linux/Mac:
+   $ ./start.sh
+
+   🪟 Windows:
+   > start.bat
+
+STEP 4: Game opens automatically in your browser!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎮 GAME CONTROLS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AIMING:
+   • Click and drag from your tank
+   • Drag length = power (longer = more power)
+   • Drag direction = angle
+   • Release to fire!
+
+KEYBOARD:
+   • Press 1 = Rail Gun (fast, direct)
+   • Press 2 = RPG (rocket-powered)
+   • Arrow Keys / A-D = Adjust angle
+   • ESC = Cancel shot
+   • Spacebar = Quick fire (50% power)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚔️  WEAPONS EXPLAINED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 RAIL GUN (Key: 1)
+   • Type: Direct kinetic weapon
+   • Trajectory: Nearly straight line
+   • Damage: 35
+   • Best for: Long-range precision shots
+   • Physics: Very fast, minimal gravity
+
+🚀 RPG (Key: 2)
+   • Type: Rocket-powered explosive
+   • Trajectory: Powered thrust → ballistic arc
+   • Damage: 50
+   • Best for: High damage, curved shots
+   • Visual: Orange thrust flame for first second
+   • Physics: Rocket boost then gravity takes over
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌍 PLANETARY STAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌙 LUNA CRATER
+   • Gravity: Low (0.15)
+   • Wind: Light (±5)
+   • Terrain: Rolling hills
+   • Strategy: High arcs work well
+
+🔴 RED FRONTIER
+   • Gravity: Medium (0.25)
+   • Wind: Moderate (±10)
+   • Terrain: Mars-like dunes
+   • Strategy: Balanced shots
+
+🪐 GAS GIANT RIM
+   • Gravity: High (0.35)
+   • Wind: Strong (±20)
+   • Terrain: High mountains
+   • Strategy: Account for wind!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 AI OPPONENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MEDIUM AI:
+   • Uses trajectory simulation
+   • Tests 48 different shots
+   • Accuracy: ±22.5°
+   • Accounts for wind
+
+HARD AI:
+   • Enhanced simulation
+   • Tests 240 different shots
+   • Accuracy: ±4.5° (very precise!)
+   • Smart targeting
+   • Will consistently hit you!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 TIPS & TRICKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Watch the wind indicator (top of screen)
+2. Use trajectory preview (dotted line) to aim
+3. Rail Gun for precision, RPG for power
+4. RPG thrust flame shows you it's working!
+5. ESC if you mess up your aim
+6. Higher power = longer shot
+7. Account for wind on Gas Giant Rim!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❓ TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Q: I see 4 weapons instead of 2?
+A: Close ALL browser tabs and run ./start.sh again.
+   The launcher adds a timestamp to force fresh load.
+
+Q: Projectiles still invisible?
+A: Make sure you're running the latest version.
+   Check: Weapon panel should say "Rail Gun" and "RPG"
+
+Q: AI too easy/hard?
+A: Adjust number of AI players in menu.
+   Try 1-2 AI on hard difficulty for challenge.
+
+Q: Launcher won't start?
+A: Make sure Python 3 is installed:
+   python3 --version
+   
+   Or manually:
+   python3 -m http.server 8080
+   Then open: http://localhost:8080/index.html
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📚 DOCUMENTATION FILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+   • README.md              - Full documentation
+   • QUICKSTART.md          - Quick reference
+   • CHANGELOG.md           - All fixes & changes
+   • REPOSITORY_SUMMARY.md  - Technical overview
+   • HOW_TO_USE.txt         - This file
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║               🎉 ENJOY THE GAME! 🎉                           ║
+║                                                               ║
+║              Have fun blasting tanks! 💥🎯                    ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+

@@ -26,11 +26,55 @@ A modern, browser-based 2D artillery game inspired by Scorched Earth and Worms. 
 
 ### Starting the Game
 
-1. Open `index.html` in a modern web browser
-2. Select a planetary stage
-3. Choose number of tanks (2-6)
-4. Choose number of AI opponents
-5. Click "Start Game"
+**IMPORTANT:** This game uses ES6 modules and requires a local web server. You cannot open `index.html` directly due to CORS restrictions.
+
+#### Quick Start (Recommended)
+
+**Linux/Mac:**
+```bash
+./start.sh
+```
+
+**Windows:**
+```cmd
+start.bat
+```
+
+Then open your browser to: **http://localhost:8080**
+
+#### Manual Start
+
+Choose one of these methods:
+
+**Python 3 (Recommended):**
+```bash
+python3 -m http.server 8080
+```
+
+**Python 2:**
+```bash
+python -m SimpleHTTPServer 8080
+```
+
+**Node.js:**
+```bash
+npx http-server -p 8080
+```
+
+**PHP:**
+```bash
+php -S localhost:8080
+```
+
+Then navigate to **http://localhost:8080** in your browser.
+
+#### Playing the Game
+
+1. Select a planetary stage (Luna Crater, Red Frontier, or Gas Giant Rim)
+2. Choose number of tanks (2-6)
+3. Choose number of AI opponents (0-5)
+4. Click "Start Game"
+5. Game begins!
 
 ### Controls
 

@@ -15,7 +15,10 @@ export class TankAI {
     /**
      * Calculate AI's shot for this turn
      */
-    calculateShot(aiTank, enemyTanks, terrain, stage, weapon) {
+    calculateShot(aiTank, enemyTanks, terrain, stage, weapon, wind = 0) {
+        // Store wind for trajectory calculations
+        this.wind = wind;
+
         // Select target (closest alive enemy)
         this.targetTank = this.selectTarget(aiTank, enemyTanks);
 
@@ -78,39 +81,27 @@ export class TankAI {
     }
 
     /**
-     * Medium AI - Aims at target with some adjustment based on previous miss
+     * Medium AI - Uses basic trajectory simulation with some error
      */
     mediumShot(aiTank, target, terrain, stage, weapon) {
-        const dx = target.x - aiTank.x;
-        const dy = target.y - aiTank.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        // Try a few quick simulations to get close
+        const bestShot = this.findBestTrajectory(
+            aiTank,
+            target,
+            terrain,
+            stage,
+            weapon,
+            8,  // Fewer angle steps
+            6   // Fewer power steps
+        );
 
-        // Calculate angle
-        let angle = Math.atan2(dy, dx);
+        // Add moderate random error
+        bestShot.angle += (Math.random() - 0.5) * Math.PI / 8; // ±22.5 degrees
+        bestShot.power += (Math.random() - 0.5) * 15;
 
-        // Adjust for gravity (simple approximation)
-        const gravityCompensation = (stage.gravity * distance) / 1000;
-        angle -= gravityCompensation;
+        bestShot.power = Math.max(20, Math.min(100, bestShot.power));
 
-        // Adjust based on last shot if we have data
-        if (this.lastShot) {
-            const missDistance = this.lastShot.missDistance || 0;
-            if (missDistance > 50) {
-                // Adjust angle slightly
-                angle += (Math.random() - 0.5) * 0.1;
-            }
-        }
-
-        // Add small random error
-        angle += (Math.random() - 0.5) * Math.PI / 6; // ±15 degrees
-
-        // Calculate power based on distance
-        let power = Math.min(100, (distance / 10) + 30);
-        power += (Math.random() - 0.5) * 20; // Add some variance
-
-        power = Math.max(20, Math.min(100, power));
-
-        return { angle, power };
+        return bestShot;
     }
 
     /**
@@ -122,12 +113,14 @@ export class TankAI {
             target,
             terrain,
             stage,
-            weapon
+            weapon,
+            20,  // More angle steps
+            12   // More power steps
         );
 
         // Add minimal random error
-        bestShot.angle += (Math.random() - 0.5) * Math.PI / 12; // ±7.5 degrees
-        bestShot.power += (Math.random() - 0.5) * 10;
+        bestShot.angle += (Math.random() - 0.5) * Math.PI / 20; // ±4.5 degrees
+        bestShot.power += (Math.random() - 0.5) * 5;
 
         bestShot.power = Math.max(20, Math.min(100, bestShot.power));
 
@@ -137,22 +130,34 @@ export class TankAI {
     /**
      * Find best trajectory through simulation
      */
-    findBestTrajectory(aiTank, target, terrain, stage, weapon) {
+    findBestTrajectory(aiTank, target, terrain, stage, weapon, angleSteps = 20, powerSteps = 12) {
         let bestAngle = 0;
         let bestPower = 50;
         let bestDistance = Infinity;
 
-        // Try different angle and power combinations
-        const angleSteps = 15;
-        const powerSteps = 10;
+        // Calculate approximate angle range toward target
+        const dx = target.x - aiTank.x;
+        const dy = target.y - aiTank.y;
+        const roughAngle = Math.atan2(dy, dx);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Focus search around rough angle
+        const angleRange = Math.PI * 0.6; // Search ±54 degrees from rough angle
+        const minAngle = Math.max(-Math.PI, roughAngle - angleRange / 2);
+        const maxAngle = Math.min(0, roughAngle + angleRange / 2);
+
+        // Use distance to estimate power range
+        const estimatedPower = Math.min(100, (distance / 8) + 20);
+        const minPower = Math.max(20, estimatedPower - 30);
+        const maxPower = Math.min(100, estimatedPower + 30);
 
         for (let a = 0; a < angleSteps; a++) {
-            const angle = -Math.PI / 2 + (a / angleSteps) * Math.PI;
+            const angle = minAngle + (a / angleSteps) * (maxAngle - minAngle);
 
             for (let p = 0; p < powerSteps; p++) {
-                const power = 30 + (p / powerSteps) * 70;
+                const power = minPower + (p / powerSteps) * (maxPower - minPower);
 
-                // Simulate trajectory
+                // Simulate trajectory with current wind
                 const trajectory = simulateTrajectory(
                     aiTank.x,
                     aiTank.y,
@@ -160,18 +165,19 @@ export class TankAI {
                     power,
                     weapon,
                     stage.gravity,
-                    0, // Ignore wind for now (could be improved)
-                    2.0
+                    this.wind || 0, // Account for wind
+                    3.0
                 );
 
-                // Find closest point to target
+                // Find closest point to target when trajectory is near ground
                 let closestDist = Infinity;
 
-                for (let point of trajectory) {
-                    // Check if point is in/near terrain
-                    if (terrain.isInside(point.x, point.y) ||
-                        Math.abs(point.y - terrain.getHeightAt(point.x)) < 20) {
+                for (let i = 0; i < trajectory.length; i++) {
+                    const point = trajectory[i];
 
+                    // Only consider points that are near or in terrain
+                    const terrainHeight = terrain.getHeightAt(point.x);
+                    if (point.y >= terrainHeight - 30) {
                         const dx = point.x - target.x;
                         const dy = point.y - target.y;
                         const dist = Math.sqrt(dx * dx + dy * dy);

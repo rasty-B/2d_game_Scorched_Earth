@@ -52,24 +52,6 @@ export class UI {
                 slot.classList.remove('active');
             }
         });
-
-        // Show weapon-specific hint
-        this.showWeaponHint(weaponName);
-    }
-
-    /**
-     * Show weapon-specific hints
-     */
-    showWeaponHint(weaponName) {
-        const hints = {
-            'Vector Seeker': 'Right-click or Shift+click to set target point'
-        };
-
-        const hint = hints[weaponName];
-        if (hint) {
-            // Show hint briefly
-            this.showNotification(hint, 3000);
-        }
     }
 
     /**

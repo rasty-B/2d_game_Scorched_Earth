@@ -74,7 +74,6 @@ export class Game {
         this.aimStartY = 0;
         this.aimPower = 0;
         this.trajectoryPoints = [];
-        this.seekerTarget = null; // Target point for seeker missiles
 
         // Animation
         this.lastTime = 0;
@@ -93,7 +92,6 @@ export class Game {
         this.canvas.addEventListener('mousedown', this.onMouseDown.bind(this));
         this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
         this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
-        this.canvas.addEventListener('contextmenu', (e) => e.preventDefault()); // Prevent right-click menu
 
         // Stage selection buttons (must be set up before start button)
         const stageButtons = document.querySelectorAll('.stage-btn');
@@ -174,7 +172,6 @@ export class Game {
                         this.isAiming = false;
                         this.aimPower = 0;
                         this.trajectoryPoints = [];
-                        this.seekerTarget = null;
                         this.ui.updatePower(0);
                         console.log('Shot cancelled');
                     }
@@ -361,11 +358,6 @@ export class Game {
         for (let explosion of this.explosions) {
             this.renderer.drawExplosion(explosion);
         }
-
-        // Draw seeker target indicator
-        if (this.seekerTarget && this.currentWeapon.behavior === 'homing') {
-            this.renderer.drawSeekerTarget(this.seekerTarget);
-        }
     }
 
     /**
@@ -381,14 +373,6 @@ export class Game {
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-
-        // For seeker weapons, right-click or Shift+click sets target
-        if (this.currentWeapon.behavior === 'homing' && (e.button === 2 || e.shiftKey)) {
-            e.preventDefault();
-            this.seekerTarget = { x, y };
-            console.log('Seeker target set:', this.seekerTarget);
-            return;
-        }
 
         // Check if clicking on current tank
         const dx = x - currentTank.x;
@@ -496,12 +480,8 @@ export class Game {
             power,
             this.currentWeapon,
             this.stage.gravity,
-            this.wind,
-            this.seekerTarget  // Pass seeker target for homing missiles
+            this.wind
         );
-
-        // Clear seeker target after firing
-        this.seekerTarget = null;
 
         this.state = 'animating';
         console.log('State changed to animating');
@@ -532,7 +512,8 @@ export class Game {
             enemyTanks,
             this.terrain,
             this.stage,
-            this.currentWeapon
+            this.currentWeapon,
+            this.wind
         );
 
         console.log('AI shot calculated:', shot);
@@ -624,11 +605,6 @@ export class Game {
             this.currentWeapon = weapon;
             this.ui.updateWeapon(weapon.name);
             this.updateTrajectoryPreview();
-
-            // Clear seeker target when changing weapons
-            if (weapon.behavior !== 'homing') {
-                this.seekerTarget = null;
-            }
         }
     }
 

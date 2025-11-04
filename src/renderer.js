@@ -158,13 +158,16 @@ export class Renderer {
     drawProjectile(projectile) {
         if (!projectile.active) return;
 
-        const { x, y, weapon, trail } = projectile;
+        const { x, y, weapon, trail, thrustFrames } = projectile;
+
+        // Check if this is an RPG in powered flight
+        const isPowered = weapon.behavior === 'powered' && thrustFrames < weapon.thrustDuration;
 
         // Draw trail
         if (trail.length > 1) {
             this.ctx.strokeStyle = weapon.trailColor;
-            this.ctx.lineWidth = 2;
-            this.ctx.globalAlpha = 0.5;
+            this.ctx.lineWidth = isPowered ? 3 : 2;
+            this.ctx.globalAlpha = isPowered ? 0.7 : 0.5;
 
             this.ctx.beginPath();
             this.ctx.moveTo(trail[0].x, trail[0].y);
@@ -183,14 +186,39 @@ export class Renderer {
         this.ctx.arc(x, y, 4, 0, Math.PI * 2);
         this.ctx.fill();
 
-        // Draw glow effect
+        // Draw glow effect (stronger for powered flight)
         this.ctx.shadowColor = weapon.color;
-        this.ctx.shadowBlur = 10;
+        this.ctx.shadowBlur = isPowered ? 15 : 10;
         this.ctx.fillStyle = weapon.color;
         this.ctx.beginPath();
-        this.ctx.arc(x, y, 6, 0, Math.PI * 2);
+        this.ctx.arc(x, y, isPowered ? 8 : 6, 0, Math.PI * 2);
         this.ctx.fill();
         this.ctx.shadowBlur = 0;
+
+        // Draw thrust flame for RPG during powered phase
+        if (isPowered) {
+            this.ctx.save();
+            this.ctx.globalAlpha = 0.8;
+            this.ctx.translate(x, y);
+            this.ctx.rotate(projectile.angle + Math.PI);
+
+            // Draw flame
+            const flameLength = 10 + Math.random() * 5;
+            const gradient = this.ctx.createLinearGradient(0, 0, flameLength, 0);
+            gradient.addColorStop(0, '#ff6b00');
+            gradient.addColorStop(0.5, '#ff9500');
+            gradient.addColorStop(1, 'rgba(255, 200, 0, 0)');
+
+            this.ctx.fillStyle = gradient;
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, 0);
+            this.ctx.lineTo(flameLength, -3);
+            this.ctx.lineTo(flameLength, 3);
+            this.ctx.closePath();
+            this.ctx.fill();
+
+            this.ctx.restore();
+        }
     }
 
     /**

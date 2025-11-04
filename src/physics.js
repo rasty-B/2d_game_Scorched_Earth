@@ -4,7 +4,7 @@
  */
 
 export class Projectile {
-    constructor(x, y, angle, power, weapon, gravity, wind, seekerTarget = null) {
+    constructor(x, y, angle, power, weapon, gravity, wind) {
         this.x = x;
         this.y = y;
         this.prevX = x;
@@ -14,7 +14,6 @@ export class Projectile {
         this.weapon = weapon;
         this.gravity = gravity;
         this.wind = wind;
-        this.seekerTarget = seekerTarget; // Specific target for seeker missiles
 
         // Calculate initial velocity
         const speed = (power / 100) * 15 * (weapon.speed || 1.0);
@@ -29,6 +28,9 @@ export class Projectile {
         // Weapon-specific properties
         this.hasSplit = false;
         this.childProjectiles = [];
+
+        // Powered flight tracking (for RPG)
+        this.thrustFrames = 0;
     }
 
     /**
@@ -38,10 +40,18 @@ export class Projectile {
         if (!this.active) return;
 
         this.age += dt;
+        this.thrustFrames++;
 
         // Store previous position for collision detection
         this.prevX = this.x;
         this.prevY = this.y;
+
+        // Apply powered thrust for RPG
+        if (this.weapon.behavior === 'powered' && this.thrustFrames < this.weapon.thrustDuration) {
+            const thrustPower = this.weapon.thrustPower || 0.15;
+            this.vx += Math.cos(this.angle) * thrustPower * dt;
+            this.vy += Math.sin(this.angle) * thrustPower * dt;
+        }
 
         // Apply gravity
         this.vy += this.gravity * dt * (this.weapon.mass || 1.0);
@@ -49,11 +59,6 @@ export class Projectile {
         // Apply wind (reduced by weapon's wind resistance)
         const windEffect = this.wind * (this.weapon.windResistance || 1.0);
         this.vx += windEffect * dt * 0.1;
-
-        // Apply homing behavior for seeker weapons
-        if (this.weapon.behavior === 'homing' && !this.hasSplit) {
-            this.applyHoming(tanks);
-        }
 
         // Update position
         this.x += this.vx * dt;
@@ -63,14 +68,6 @@ export class Projectile {
         this.trail.push({ x: this.prevX, y: this.prevY });
         if (this.trail.length > this.maxTrailLength) {
             this.trail.shift();
-        }
-
-        // Check for cluster split
-        if (this.weapon.behavior === 'cluster' && !this.hasSplit) {
-            const splitTime = this.weapon.clusterDelay || 0.8;
-            if (this.age > splitTime * 2) { // Approximate flight time
-                this.splitCluster();
-            }
         }
 
         // Check collision with terrain
@@ -91,75 +88,6 @@ export class Projectile {
         // Check bounds
         if (this.x < -100 || this.x > terrain.width + 100 || this.y > terrain.height + 100) {
             this.active = false;
-        }
-    }
-
-    /**
-     * Apply homing behavior
-     */
-    applyHoming(tanks) {
-        let targetX, targetY;
-
-        // Use specific seeker target if set, otherwise find closest tank
-        if (this.seekerTarget) {
-            targetX = this.seekerTarget.x;
-            targetY = this.seekerTarget.y;
-        } else {
-            let closestTank = null;
-            let closestDist = Infinity;
-
-            // Find closest enemy tank
-            for (let tank of tanks) {
-                if (!tank.isAlive) continue;
-
-                const dx = tank.x - this.x;
-                const dy = tank.y - this.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (dist < closestDist && dist < this.weapon.homingRange) {
-                    closestDist = dist;
-                    closestTank = tank;
-                }
-            }
-
-            if (!closestTank) return;
-
-            targetX = closestTank.x;
-            targetY = closestTank.y;
-        }
-
-        // Calculate direction to target
-        const dx = targetX - this.x;
-        const dy = targetY - this.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist > 0) {
-            // Apply subtle correction
-            const strength = this.weapon.homingStrength || 0.05;
-            this.vx += (dx / dist) * strength;
-            this.vy += (dy / dist) * strength;
-        }
-    }
-
-    /**
-     * Split into cluster munitions
-     */
-    splitCluster() {
-        this.hasSplit = true;
-        const count = this.weapon.clusterCount || 5;
-        const spread = this.weapon.clusterSpread || 20;
-
-        for (let i = 0; i < count; i++) {
-            const spreadAngle = (Math.random() - 0.5) * (spread * Math.PI / 180);
-            const childProjectile = {
-                x: this.x,
-                y: this.y,
-                vx: this.vx * 0.7 + Math.cos(spreadAngle) * 3,
-                vy: this.vy * 0.7 + Math.sin(spreadAngle) * 3,
-                radius: this.weapon.radius * 0.6,
-                damage: this.weapon.baseDamage * 0.5
-            };
-            this.childProjectiles.push(childProjectile);
         }
     }
 
@@ -189,42 +117,22 @@ export class Projectile {
             behavior: this.weapon.behavior
         };
 
-        // Apply effects based on weapon behavior
-        switch (this.weapon.behavior) {
-            case 'build':
-                // Terraformer - add terrain
-                terrain.deform(x, y, this.weapon.radius, true);
-                break;
+        // Deform terrain
+        terrain.deform(x, y, this.weapon.radius, false);
 
-            case 'shield':
-                // Shield - apply to nearest tank
-                // (handled in game logic)
-                break;
+        // Damage tanks in radius
+        for (let tank of tanks) {
+            if (!tank.isAlive) continue;
 
-            case 'teleport':
-                // Jump drone - move tank
-                // (handled in game logic)
-                break;
+            const dx = tank.x - x;
+            const dy = tank.y - y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
 
-            default:
-                // Standard explosion - deform terrain
-                terrain.deform(x, y, this.weapon.radius, false);
-
-                // Damage tanks in radius
-                for (let tank of tanks) {
-                    if (!tank.isAlive) continue;
-
-                    const dx = tank.x - x;
-                    const dy = tank.y - y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-
-                    if (dist < this.weapon.radius) {
-                        const falloff = 1 - (dist / this.weapon.radius);
-                        const damage = Math.floor(this.weapon.baseDamage * falloff);
-                        tank.takeDamage(damage);
-                    }
-                }
-                break;
+            if (dist < this.weapon.radius) {
+                const falloff = 1 - (dist / this.weapon.radius);
+                const damage = Math.floor(this.weapon.baseDamage * falloff);
+                tank.takeDamage(damage);
+            }
         }
 
         return explosion;

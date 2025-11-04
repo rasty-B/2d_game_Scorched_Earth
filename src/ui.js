@@ -5,6 +5,8 @@
 
 export class UI {
     constructor() {
+        console.log('UI constructor called');
+
         this.elements = {
             currentPlayer: document.getElementById('current-player'),
             currentWeapon: document.getElementById('current-weapon'),
@@ -19,7 +21,12 @@ export class UI {
             weaponPanel: document.getElementById('weapon-panel')
         };
 
+        // Debug: Check if critical elements exist
+        console.log('game-menu element:', this.elements.gameMenu);
+        console.log('game-menu has hidden class:', this.elements.gameMenu?.classList.contains('hidden'));
+
         this.weaponSlots = document.querySelectorAll('.weapon-slot');
+        console.log('Found weapon slots:', this.weaponSlots.length);
     }
 
     /**
@@ -93,8 +100,20 @@ export class UI {
      * Show game menu
      */
     showMenu() {
-        this.elements.gameMenu.classList.remove('hidden');
-        this.elements.gameOver.classList.add('hidden');
+        console.log('showMenu() called');
+        console.log('gameMenu element exists:', !!this.elements.gameMenu);
+
+        if (this.elements.gameMenu) {
+            console.log('Removing hidden class from menu');
+            this.elements.gameMenu.classList.remove('hidden');
+            console.log('Menu classes after remove:', this.elements.gameMenu.className);
+        } else {
+            console.error('ERROR: gameMenu element is null!');
+        }
+
+        if (this.elements.gameOver) {
+            this.elements.gameOver.classList.add('hidden');
+        }
     }
 
     /**

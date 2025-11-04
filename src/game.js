@@ -66,6 +66,7 @@ export class Game {
         this.wind = 0;
         this.currentWeapon = null;
         this.availableWeapons = getStartingWeapons();
+        this.selectedStage = 'lunaCrater'; // Default selected stage
 
         // Aiming
         this.isAiming = false;
@@ -77,8 +78,10 @@ export class Game {
         // Animation
         this.lastTime = 0;
 
+        console.log('Game initialized');
         this.setupEventListeners();
         this.ui.showMenu();
+        console.log('Menu should be visible now');
     }
 
     /**
@@ -90,22 +93,29 @@ export class Game {
         this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
         this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
 
+        // Stage selection buttons (must be set up before start button)
+        const stageButtons = document.querySelectorAll('.stage-btn');
+        stageButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                stageButtons.forEach(b => b.style.background = '#1a1a2e');
+                btn.style.background = '#4ecca3';
+                this.selectedStage = btn.dataset.stage;
+                console.log('Selected stage:', this.selectedStage);
+            });
+
+            // Highlight default selected stage
+            if (btn.dataset.stage === this.selectedStage) {
+                btn.style.background = '#4ecca3';
+            }
+        });
+
         // Menu events
         document.getElementById('start-game').addEventListener('click', () => {
             const tankCount = parseInt(document.getElementById('tank-count').value);
             const aiCount = parseInt(document.getElementById('ai-count').value);
-            const stageButtons = document.querySelectorAll('.stage-btn');
 
-            let selectedStage = 'lunaCrater';
-            stageButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    stageButtons.forEach(b => b.style.background = '#1a1a2e');
-                    btn.style.background = '#4ecca3';
-                    selectedStage = btn.dataset.stage;
-                });
-            });
-
-            this.startGame(selectedStage, tankCount, aiCount);
+            console.log('Starting game with:', this.selectedStage, tankCount, 'tanks,', aiCount, 'AI');
+            this.startGame(this.selectedStage, tankCount, aiCount);
         });
 
         // Tank count slider
@@ -164,11 +174,15 @@ export class Game {
      * Start new game
      */
     startGame(stageKey, tankCount, aiCount) {
+        console.log('startGame called with:', stageKey, tankCount, aiCount);
         this.ui.hideMenu();
 
         // Setup stage
         this.stage = getStage(stageKey);
+        console.log('Stage loaded:', this.stage.name);
+
         this.terrain = new Terrain(this.canvas.width, this.canvas.height, this.stage.terrainProfile);
+        console.log('Terrain generated');
 
         // Setup wind
         this.wind = generateWind(this.stage.windRange);
@@ -190,6 +204,7 @@ export class Game {
             );
             this.tanks.push(tank);
         }
+        console.log('Tanks created:', this.tanks.length);
 
         // Setup game state
         this.currentTankIndex = 0;
@@ -202,6 +217,15 @@ export class Game {
         // Start game loop
         this.lastTime = performance.now();
         this.gameLoop();
+        console.log('Game loop started');
+
+        // Check if first tank is AI
+        const firstTank = this.getCurrentTank();
+        if (firstTank && firstTank.isAI) {
+            setTimeout(() => {
+                this.executeAITurn(firstTank);
+            }, 1500);
+        }
     }
 
     /**
@@ -278,15 +302,6 @@ export class Game {
 
         // Update particles
         this.renderer.updateParticles(dt);
-
-        // Check for AI turn
-        const currentTank = this.getCurrentTank();
-        if (currentTank && currentTank.isAI && !this.projectile && this.state === 'playing') {
-            // AI takes shot after short delay
-            setTimeout(() => {
-                this.executeAITurn(currentTank);
-            }, 1000);
-        }
     }
 
     /**
@@ -294,6 +309,12 @@ export class Game {
      */
     render() {
         this.renderer.clear();
+
+        // Only render game elements if we have terrain and stage (not in menu)
+        if (!this.terrain || !this.stage) {
+            return;
+        }
+
         this.renderer.drawSky(this.stage);
         this.renderer.drawTerrain(this.terrain, this.stage);
 
@@ -486,6 +507,14 @@ export class Game {
 
         this.state = 'playing';
         this.updateUI();
+
+        // Check if next tank is AI and trigger its turn
+        const currentTank = this.getCurrentTank();
+        if (currentTank && currentTank.isAI) {
+            setTimeout(() => {
+                this.executeAITurn(currentTank);
+            }, 1500);
+        }
     }
 
     /**

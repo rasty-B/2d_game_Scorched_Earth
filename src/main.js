@@ -3,7 +3,7 @@
  * Initializes the game and starts the application
  */
 
-import { Game } from './game.js?v=2';
+import { Game } from './game.js';
 
 // Wait for DOM to load
 document.addEventListener('DOMContentLoaded', () => {

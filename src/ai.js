@@ -3,7 +3,7 @@
  * Implements difficulty levels: easy, medium, hard
  */
 
-import { simulateTrajectory } from './physics.js?v=2';
+import { simulateTrajectory } from './physics.js';
 
 export class TankAI {
     constructor(difficulty = 'medium') {

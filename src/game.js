@@ -3,13 +3,13 @@
  * Manages game state, turns, and coordination between systems
  */
 
-import { Terrain } from './terrain.js?v=2';
-import { Projectile, simulateTrajectory, generateWind } from './physics.js?v=2';
-import { Renderer } from './renderer.js?v=2';
-import { TankAI } from './ai.js?v=2';
-import { getStage } from './stages.js?v=2';
-import { getWeapon, getStartingWeapons } from './weapons.js?v=2';
-import { UI } from './ui.js?v=2';
+import { Terrain } from './terrain.js';
+import { Projectile, simulateTrajectory, generateWind } from './physics.js';
+import { Renderer } from './renderer.js';
+import { TankAI } from './ai.js';
+import { getStage } from './stages.js';
+import { getWeapon, getStartingWeapons } from './weapons.js';
+import { UI } from './ui.js';
 
 class Tank {
     constructor(id, x, y, color, isAI = false, aiDifficulty = 'medium') {

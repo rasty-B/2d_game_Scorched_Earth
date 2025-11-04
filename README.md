@@ -1,4 +1,4 @@
-# Artillery Game - Modern Scorched Earth
+# Scorched Earth - Artillery Game
 
 A modern, browser-based 2D artillery game inspired by Scorched Earth and Worms. Battle with tanks across different planets with unique physics!
 
@@ -7,18 +7,14 @@ A modern, browser-based 2D artillery game inspired by Scorched Earth and Worms. 
 - **Turn-based artillery combat** with 2-6 tanks
 - **Mouse-driven aiming** with trajectory preview
 - **Dynamic physics** including gravity, wind, and terrain deformation
-- **5 Planetary Stages** with unique conditions:
+- **3 Planetary Stages** with unique conditions:
   - Luna Crater - Low gravity moon
   - Red Frontier - Mars-like dunes
   - Gas Giant Rim - High gravity, strong winds
-  - Ice Moon - Frozen cliffs
-  - Magma Core - Volcanic hellscape
-- **4 Weapon Types**:
-  - Rail Shot - High-speed kinetic shell
-  - Plasma Arc - Burning energy weapon
-  - Cluster Swarm - Splits into sub-munitions
-  - Vector Seeker - Homing projectile
-- **AI Opponents** with multiple difficulty levels
+- **2 Weapon Types**:
+  - **Rail Gun** - High-speed direct fire with minimal arc (fast kinetic shell)
+  - **RPG** - Rocket-powered explosive with thrust phase then gravity ballistic arc
+- **Intelligent AI Opponents** with trajectory simulation and wind compensation
 - **Destructible terrain** using heightmap system
 - **Clean, modern UI** with minimal overlays
 
@@ -40,7 +36,12 @@ A modern, browser-based 2D artillery game inspired by Scorched Earth and Worms. 
 start.bat
 ```
 
-Then open your browser to: **http://localhost:8080**
+The launcher script will:
+- Start a local web server on port 8080
+- Automatically open your browser
+- Display game controls and instructions
+
+**That's it!** The game should open automatically in your browser.
 
 #### Manual Start
 
@@ -88,7 +89,9 @@ Then navigate to **http://localhost:8080** in your browser.
 #### Keyboard Controls
 - **Arrow Keys / A-D**: Fine-tune angle
 - **Spacebar**: Fire with 50% power
-- **1-4**: Select weapon
+- **1**: Select Rail Gun (fast, direct fire)
+- **2**: Select RPG (rocket-powered)
+- **ESC**: Cancel current shot/aim
 
 ### Game Rules
 
@@ -131,15 +134,17 @@ Then navigate to **http://localhost:8080** in your browser.
 ✅ Heightmap-based collision detection
 ✅ Physics simulation (gravity, wind, projectiles)
 ✅ Mouse-driven aiming with trajectory preview
-✅ 4 weapon types with unique behaviors
-✅ 3+ planetary stages with different physics
-✅ AI opponents (Easy, Medium, Hard)
+✅ 2 weapon types: Rail Gun (direct fire) and RPG (powered rocket)
+✅ 3 planetary stages with different physics
+✅ **Intelligent AI** with trajectory simulation and wind compensation
 ✅ Turn-based gameplay
 ✅ Tank HP and damage system
 ✅ Explosion effects and terrain deformation
 ✅ Clean HUD with power meter, wind indicator
 ✅ Weapon selection system
 ✅ Game over and menu screens
+✅ ESC key to cancel shots
+✅ **Auto-launch scripts** for easy setup (start.sh / start.bat)
 
 ## Deployment
 
@@ -150,7 +155,7 @@ Then navigate to **http://localhost:8080** in your browser.
 4. Access at `https://[username].github.io/[repo-name]/`
 
 ### Local Testing
-Simply open `index.html` in a web browser. No build process or server required!
+Use the launcher scripts (`start.sh` or `start.bat`) for the easiest setup. They automatically start a web server and open your browser.
 
 ## Future Enhancements
 

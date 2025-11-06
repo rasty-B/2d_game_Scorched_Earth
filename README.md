@@ -21,6 +21,12 @@ A modern, browser-based 2D artillery game inspired by Scorched Earth and Worms. 
 - **AI Opponents** with multiple difficulty levels
 - **Destructible terrain** using heightmap system
 - **Clean, modern UI** with minimal overlays
+- **Enhanced Graphics System** with procedural textures and particle effects:
+  - Stage-specific terrain textures (rock, sand, ice, lava)
+  - Multi-layer particle system (fire, smoke, debris)
+  - Detailed tank graphics with shadows and metallic shading
+  - Dramatic explosions with shockwaves
+  - Muzzle flash effects
 
 ## How to Play
 
@@ -122,7 +128,12 @@ Then navigate to **http://localhost:8080** in your browser.
   stages.js         - Planetary stage configurations
   ai.js             - AI opponent logic
   ui.js             - HUD and interface management
-/assets/            - Sound and image assets (future)
+  /graphics/        - Enhanced graphics system (NEW)
+    gfx_common.js   - Graphics utilities
+    terrain_patterns.js - Procedural terrain textures
+    particles.js    - Particle system (fire/smoke/debris)
+    tank_graphics.js - Enhanced tank rendering
+    README.md       - Graphics module documentation
 ```
 
 ### Features Implemented
@@ -140,6 +151,7 @@ Then navigate to **http://localhost:8080** in your browser.
 ✅ Clean HUD with power meter, wind indicator
 ✅ Weapon selection system
 ✅ Game over and menu screens
+✅ Enhanced graphics with procedural textures and particles
 
 ## Deployment
 

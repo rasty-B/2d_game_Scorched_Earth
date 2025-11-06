@@ -2,6 +2,10 @@
  * Renderer - Handles all Canvas drawing operations
  */
 
+import { getCachedTerrainPattern } from './graphics/terrain_patterns.js';
+import { drawEnhancedTank, drawMuzzleFlash } from './graphics/tank_graphics.js';
+import { ParticleManager, spawnExplosionParticles, spawnImpactParticles } from './graphics/particles.js';
+
 export class Renderer {
     constructor(canvas) {
         this.canvas = canvas;
@@ -9,6 +13,9 @@ export class Renderer {
         this.width = canvas.width;
         this.height = canvas.height;
         this.particles = [];
+        this.particleManager = new ParticleManager();
+        this.currentStage = null;
+        this.muzzleFlashes = []; // Track muzzle flash effects
     }
 
     /**
@@ -52,11 +59,16 @@ export class Renderer {
     }
 
     /**
-     * Draw terrain
+     * Draw terrain with enhanced textures
      */
     drawTerrain(terrain, stage) {
-        // Draw terrain fill
-        this.ctx.fillStyle = stage.colors.terrain;
+        this.currentStage = stage;
+
+        // Get terrain pattern for this stage
+        const pattern = getCachedTerrainPattern(stage.name || 'lunaCrater');
+
+        // Draw terrain fill with texture
+        this.ctx.fillStyle = pattern;
         this.ctx.beginPath();
         this.ctx.moveTo(0, this.height);
 
@@ -84,72 +96,80 @@ export class Renderer {
         }
 
         this.ctx.stroke();
+
+        // Add subtle shading to terrain peaks and valleys
+        this.addTerrainShading(terrain);
     }
 
     /**
-     * Draw a tank
+     * Add shading to terrain for depth
+     */
+    addTerrainShading(terrain) {
+        this.ctx.save();
+        this.ctx.globalAlpha = 0.2;
+
+        for (let x = 1; x < terrain.width - 1; x += 2) {
+            const yPrev = terrain.getHeightAt(x - 1);
+            const y = terrain.getHeightAt(x);
+            const yNext = terrain.getHeightAt(x + 1);
+
+            // Calculate slope
+            const leftSlope = y - yPrev;
+            const rightSlope = yNext - y;
+            const avgSlope = (leftSlope + rightSlope) / 2;
+
+            // Add highlights to peaks, shadows to valleys
+            if (avgSlope < -2) {
+                // Peak - add highlight
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                this.ctx.fillRect(x, y, 2, 5);
+            } else if (avgSlope > 2) {
+                // Valley - add shadow
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+                this.ctx.fillRect(x, y, 2, 5);
+            }
+        }
+
+        this.ctx.restore();
+    }
+
+    /**
+     * Draw a tank using enhanced graphics
      */
     drawTank(tank, isActive = false) {
         if (!tank.isAlive) return;
-
-        const { x, y, angle, color, radius } = tank;
-
-        // Draw tank body
-        this.ctx.fillStyle = color;
-        this.ctx.strokeStyle = '#000';
-        this.ctx.lineWidth = 2;
-
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.stroke();
-
-        // Draw barrel
-        const barrelLength = radius * 1.8;
-        const barrelX = x + Math.cos(angle) * barrelLength;
-        const barrelY = y + Math.sin(angle) * barrelLength;
-
-        this.ctx.strokeStyle = isActive ? '#ffd700' : '#333';
-        this.ctx.lineWidth = 4;
-        this.ctx.beginPath();
-        this.ctx.moveTo(x, y);
-        this.ctx.lineTo(barrelX, barrelY);
-        this.ctx.stroke();
-
-        // Draw HP bar
-        this.drawHealthBar(x, y - radius - 10, tank.hp, tank.maxHp);
-
-        // Draw active indicator
-        if (isActive) {
-            this.ctx.strokeStyle = '#ffd700';
-            this.ctx.lineWidth = 3;
-            this.ctx.beginPath();
-            this.ctx.arc(x, y, radius + 5, 0, Math.PI * 2);
-            this.ctx.stroke();
-        }
+        drawEnhancedTank(this.ctx, tank, isActive);
     }
 
     /**
-     * Draw health bar
+     * Add muzzle flash effect when tank fires
      */
-    drawHealthBar(x, y, hp, maxHp) {
-        const width = 40;
-        const height = 6;
-        const percent = hp / maxHp;
+    addMuzzleFlash(x, y, angle, size = 20) {
+        this.muzzleFlashes.push({
+            x,
+            y,
+            angle,
+            size,
+            alpha: 1.0,
+            life: 0.2 // Duration in seconds
+        });
+    }
 
-        // Background
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        this.ctx.fillRect(x - width / 2, y, width, height);
+    /**
+     * Update and draw muzzle flashes
+     */
+    updateMuzzleFlashes(dt = 1.0) {
+        for (let i = this.muzzleFlashes.length - 1; i >= 0; i--) {
+            const flash = this.muzzleFlashes[i];
+            flash.life -= dt * 0.016;
+            flash.alpha = Math.max(0, flash.life / 0.2);
 
-        // HP fill
-        const hpColor = percent > 0.6 ? '#4ecca3' : percent > 0.3 ? '#f39c12' : '#e74c3c';
-        this.ctx.fillStyle = hpColor;
-        this.ctx.fillRect(x - width / 2, y, width * percent, height);
-
-        // Border
-        this.ctx.strokeStyle = '#000';
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeRect(x - width / 2, y, width, height);
+            if (flash.life <= 0) {
+                this.muzzleFlashes.splice(i, 1);
+            } else {
+                drawMuzzleFlash(this.ctx, flash.x, flash.y, flash.angle, flash.size, flash.alpha);
+            }
+        }
     }
 
     /**
@@ -252,7 +272,7 @@ export class Renderer {
     }
 
     /**
-     * Draw explosion effect
+     * Draw explosion effect with enhanced graphics
      */
     drawExplosion(explosion) {
         const { x, y, radius, color, age, maxAge } = explosion;
@@ -260,67 +280,90 @@ export class Renderer {
         const currentRadius = radius * (1 + progress * 0.5);
         const alpha = 1 - progress;
 
-        // Outer ring
+        this.ctx.save();
+
+        // Outer shockwave ring
+        this.ctx.globalAlpha = alpha * 0.3;
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = 3;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, currentRadius * 1.2, 0, Math.PI * 2);
+        this.ctx.stroke();
+
+        // Outer glow
         this.ctx.globalAlpha = alpha * 0.5;
-        this.ctx.fillStyle = color;
+        const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, currentRadius);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color);
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        this.ctx.fillStyle = gradient;
         this.ctx.beginPath();
         this.ctx.arc(x, y, currentRadius, 0, Math.PI * 2);
         this.ctx.fill();
 
-        // Inner core
-        this.ctx.globalAlpha = alpha;
-        this.ctx.fillStyle = '#fff';
+        // Inner fire core
+        this.ctx.globalCompositeOperation = 'lighter';
+        this.ctx.globalAlpha = alpha * 0.8;
+        const fireGradient = this.ctx.createRadialGradient(x, y, 0, x, y, currentRadius * 0.6);
+        fireGradient.addColorStop(0, '#fff');
+        fireGradient.addColorStop(0.3, '#ffaa00');
+        fireGradient.addColorStop(0.6, color);
+        fireGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        this.ctx.fillStyle = fireGradient;
         this.ctx.beginPath();
-        this.ctx.arc(x, y, currentRadius * 0.5, 0, Math.PI * 2);
+        this.ctx.arc(x, y, currentRadius * 0.6, 0, Math.PI * 2);
         this.ctx.fill();
 
-        this.ctx.globalAlpha = 1.0;
+        this.ctx.restore();
     }
 
     /**
-     * Add particle effect
+     * Add particle effect using enhanced particle system
      */
     addParticles(x, y, count, color) {
-        for (let i = 0; i < count; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const speed = Math.random() * 3 + 1;
-
-            this.particles.push({
-                x,
-                y,
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed - 2,
-                life: 1.0,
-                color
-            });
-        }
+        // Keep backward compatibility while using new system
+        const power = count / 30; // Normalize count to power
+        const particles = spawnExplosionParticles(x, y, power);
+        this.particleManager.addParticles(particles);
     }
 
     /**
-     * Update and draw particles
+     * Add explosion particles
+     */
+    addExplosionParticles(x, y, power = 1.0) {
+        const particles = spawnExplosionParticles(x, y, power);
+        this.particleManager.addParticles(particles);
+    }
+
+    /**
+     * Add impact particles (when projectile hits terrain)
+     */
+    addImpactParticles(x, y, terrainColor) {
+        const particles = spawnImpactParticles(x, y, terrainColor);
+        this.particleManager.addParticles(particles);
+    }
+
+    /**
+     * Update and draw particles using enhanced system
      */
     updateParticles(dt) {
-        for (let i = this.particles.length - 1; i >= 0; i--) {
-            const p = this.particles[i];
+        // Update particle manager
+        const gravity = this.currentStage ? this.currentStage.gravity : 0.2;
+        this.particleManager.update(dt, gravity);
 
-            p.x += p.vx * dt;
-            p.y += p.vy * dt;
-            p.vy += 0.2; // Gravity
-            p.life -= dt * 0.5;
+        // Render all particles
+        this.particleManager.render(this.ctx);
 
-            if (p.life <= 0) {
-                this.particles.splice(i, 1);
-                continue;
-            }
+        // Update muzzle flashes
+        this.updateMuzzleFlashes(dt);
+    }
 
-            this.ctx.globalAlpha = p.life;
-            this.ctx.fillStyle = p.color;
-            this.ctx.beginPath();
-            this.ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-            this.ctx.fill();
-        }
-
-        this.ctx.globalAlpha = 1.0;
+    /**
+     * Clear all particles
+     */
+    clearParticles() {
+        this.particleManager.clear();
+        this.muzzleFlashes = [];
     }
 
     /**

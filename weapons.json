@@ -1,0 +1,606 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Hover Tank Weapons Configuration",
+  "description": "Defines all weapon types with energy costs, heat generation, cooldowns, and damage profiles for the energy-based gameplay system.",
+  "version": "1.0.0",
+
+  "categories": {
+    "kinetic": {
+      "description": "Traditional ballistic weapons with low energy cost and accurate trajectories",
+      "color": "#4ecca3",
+      "icon": "kinetic"
+    },
+    "energy": {
+      "description": "Plasma and energy-based weapons with area-of-effect damage",
+      "color": "#e74c3c",
+      "icon": "energy"
+    },
+    "smart": {
+      "description": "Guided or multi-munition weapons with environmental variability",
+      "color": "#f39c12",
+      "icon": "smart"
+    },
+    "utility": {
+      "description": "Non-damage effects: marking, disabling, sensor manipulation",
+      "color": "#3498db",
+      "icon": "utility"
+    },
+    "exotic": {
+      "description": "High-yield weapons requiring multi-round charging",
+      "color": "#9b59b6",
+      "icon": "exotic"
+    },
+    "gravitic": {
+      "description": "Gravity manipulation for terrain and movement effects",
+      "color": "#1abc9c",
+      "icon": "gravitic"
+    }
+  },
+
+  "weapons": {
+    "rail_shot": {
+      "id": "rail_shot",
+      "name": "Rail Shot",
+      "category": "kinetic",
+      "tier": 1,
+      "description": "High-velocity kinetic projectile. Basic, accurate, low energy cost.",
+      "unlockLevel": 0,
+
+      "energyCost": 10,
+      "heatGeneration": 5,
+      "cooldownTurns": 0,
+
+      "damage": {
+        "direct": 35,
+        "explosionRadius": 15,
+        "falloffType": "linear",
+        "armorPiercing": 0.2
+      },
+
+      "projectile": {
+        "velocity": 150,
+        "mass": 5.0,
+        "radius": 0.15,
+        "dragCoefficient": 0.1,
+        "windResistance": 0.5,
+        "maxSpeed": 200
+      },
+
+      "terrain": {
+        "deformationType": "crater",
+        "deformationStrength": 8.0,
+        "affectsGravity": false
+      },
+
+      "visual": {
+        "trailColor": "#4ecca3",
+        "trailLength": 20,
+        "impactEffect": "kinetic_impact",
+        "soundEffect": "rail_shot"
+      }
+    },
+
+    "plasma_arc": {
+      "id": "plasma_arc",
+      "name": "Plasma Arc",
+      "category": "energy",
+      "tier": 2,
+      "description": "Burning plasma weapon with area-of-effect damage and damage-over-time. Generates significant heat.",
+      "unlockLevel": 0,
+
+      "energyCost": 25,
+      "heatGeneration": 15,
+      "cooldownTurns": 1,
+
+      "damage": {
+        "direct": 30,
+        "explosionRadius": 20,
+        "falloffType": "quadratic",
+        "armorPiercing": 0.0,
+        "burnDuration": 3.0,
+        "burnDamagePerSecond": 5.0
+      },
+
+      "projectile": {
+        "velocity": 80,
+        "mass": 2.0,
+        "radius": 0.25,
+        "dragCoefficient": 0.3,
+        "windResistance": 1.0,
+        "maxSpeed": 100
+      },
+
+      "terrain": {
+        "deformationType": "crater",
+        "deformationStrength": 5.0,
+        "affectsGravity": false,
+        "leavesField": true,
+        "fieldDuration": 3.0,
+        "fieldRadius": 25.0
+      },
+
+      "visual": {
+        "trailColor": "#e74c3c",
+        "trailLength": 25,
+        "impactEffect": "plasma_burn",
+        "soundEffect": "plasma_arc",
+        "emissiveColor": "#ff4500",
+        "emissiveIntensity": 2.5
+      }
+    },
+
+    "cluster_swarm": {
+      "id": "cluster_swarm",
+      "name": "Cluster Swarm",
+      "category": "smart",
+      "tier": 2,
+      "description": "Splits into multiple sub-munitions mid-flight for area saturation.",
+      "unlockLevel": 1,
+
+      "energyCost": 30,
+      "heatGeneration": 10,
+      "cooldownTurns": 2,
+
+      "damage": {
+        "direct": 20,
+        "explosionRadius": 12,
+        "falloffType": "linear",
+        "armorPiercing": 0.1
+      },
+
+      "projectile": {
+        "velocity": 100,
+        "mass": 8.0,
+        "radius": 0.3,
+        "dragCoefficient": 0.4,
+        "windResistance": 1.2,
+        "maxSpeed": 120
+      },
+
+      "behavior": {
+        "type": "cluster",
+        "splitTiming": 0.8,
+        "clusterCount": 6,
+        "spreadAngleDegrees": 30,
+        "childVelocityFactor": 0.7,
+        "childDamage": 15,
+        "childExplosionRadius": 8
+      },
+
+      "terrain": {
+        "deformationType": "crater",
+        "deformationStrength": 4.0,
+        "affectsGravity": false
+      },
+
+      "visual": {
+        "trailColor": "#f39c12",
+        "trailLength": 15,
+        "impactEffect": "cluster_impact",
+        "soundEffect": "cluster_swarm"
+      }
+    },
+
+    "vector_seeker": {
+      "id": "vector_seeker",
+      "name": "Vector Seeker",
+      "category": "smart",
+      "tier": 2,
+      "description": "Smart munition with semi-guided targeting. Environmental factors affect tracking accuracy.",
+      "unlockLevel": 1,
+
+      "energyCost": 35,
+      "heatGeneration": 12,
+      "cooldownTurns": 2,
+
+      "damage": {
+        "direct": 40,
+        "explosionRadius": 18,
+        "falloffType": "linear",
+        "armorPiercing": 0.15
+      },
+
+      "projectile": {
+        "velocity": 90,
+        "mass": 4.0,
+        "radius": 0.2,
+        "dragCoefficient": 0.25,
+        "windResistance": 1.0,
+        "maxSpeed": 110
+      },
+
+      "behavior": {
+        "type": "homing",
+        "homingStrength": 0.05,
+        "homingRange": 150,
+        "homingDelay": 0.5,
+        "targetingMode": "nearest",
+        "environmentalVariability": 0.15
+      },
+
+      "terrain": {
+        "deformationType": "crater",
+        "deformationStrength": 6.0,
+        "affectsGravity": false
+      },
+
+      "visual": {
+        "trailColor": "#9b59b6",
+        "trailLength": 30,
+        "impactEffect": "seeker_impact",
+        "soundEffect": "vector_seeker",
+        "guidanceMarkers": true
+      }
+    },
+
+    "orbital_beacon": {
+      "id": "orbital_beacon",
+      "name": "Orbital Beacon",
+      "category": "utility",
+      "tier": 2,
+      "description": "Marks target area for delayed orbital strike. Non-damage initial effect.",
+      "unlockLevel": 2,
+
+      "energyCost": 40,
+      "heatGeneration": 8,
+      "cooldownTurns": 3,
+
+      "damage": {
+        "direct": 0,
+        "explosionRadius": 0,
+        "falloffType": "constant",
+        "armorPiercing": 0.0,
+        "delayedStrike": {
+          "delayTurns": 1,
+          "strikeDamage": 60,
+          "strikeRadius": 30
+        }
+      },
+
+      "projectile": {
+        "velocity": 120,
+        "mass": 0.5,
+        "radius": 0.1,
+        "dragCoefficient": 0.05,
+        "windResistance": 0.0,
+        "maxSpeed": 150
+      },
+
+      "behavior": {
+        "type": "marking",
+        "beaconDuration": 2.0,
+        "visibleToAllPlayers": true,
+        "canBeInterrupted": false
+      },
+
+      "terrain": {
+        "deformationType": "crater",
+        "deformationStrength": 12.0,
+        "affectsGravity": false
+      },
+
+      "visual": {
+        "trailColor": "#3498db",
+        "trailLength": 25,
+        "impactEffect": "beacon_marker",
+        "soundEffect": "orbital_beacon",
+        "beaconVisual": "laser_target",
+        "strikeVisual": "orbital_laser"
+      }
+    },
+
+    "emp_pulse": {
+      "id": "emp_pulse",
+      "name": "EMP Pulse",
+      "category": "utility",
+      "tier": 2,
+      "description": "Electromagnetic pulse that disables enemy systems for one turn. No physical damage.",
+      "unlockLevel": 2,
+
+      "energyCost": 30,
+      "heatGeneration": 20,
+      "cooldownTurns": 3,
+
+      "damage": {
+        "direct": 0,
+        "explosionRadius": 35,
+        "falloffType": "quadratic",
+        "armorPiercing": 0.0,
+        "disableDuration": 1.0,
+        "affectsShields": true,
+        "affectsWeapons": true,
+        "affectsMovement": true
+      },
+
+      "projectile": {
+        "velocity": 100,
+        "mass": 1.0,
+        "radius": 0.15,
+        "dragCoefficient": 0.2,
+        "windResistance": 0.8,
+        "maxSpeed": 120
+      },
+
+      "behavior": {
+        "type": "area_disable",
+        "pulseRadius": 35,
+        "propagationSpeed": 50,
+        "lingersInArea": false
+      },
+
+      "terrain": {
+        "deformationType": "none",
+        "deformationStrength": 0,
+        "affectsGravity": false
+      },
+
+      "visual": {
+        "trailColor": "#00d4ff",
+        "trailLength": 20,
+        "impactEffect": "emp_burst",
+        "soundEffect": "emp_pulse",
+        "electricArcs": true,
+        "pulseWave": true
+      }
+    },
+
+    "quantum_bomb": {
+      "id": "quantum_bomb",
+      "name": "Quantum Bomb",
+      "category": "exotic",
+      "tier": 3,
+      "description": "Devastating weapon requiring 2-turn charge. Massive damage and terrain deformation.",
+      "unlockLevel": 3,
+
+      "energyCost": 60,
+      "heatGeneration": 35,
+      "cooldownTurns": 4,
+      "chargeTurnsRequired": 2,
+
+      "damage": {
+        "direct": 80,
+        "explosionRadius": 40,
+        "falloffType": "linear",
+        "armorPiercing": 0.3,
+        "quantumInstability": true
+      },
+
+      "projectile": {
+        "velocity": 70,
+        "mass": 15.0,
+        "radius": 0.4,
+        "dragCoefficient": 0.5,
+        "windResistance": 0.3,
+        "maxSpeed": 90,
+        "unstable": true
+      },
+
+      "behavior": {
+        "type": "quantum",
+        "chargeVisual": "quantum_buildup",
+        "chargeSound": "quantum_charge",
+        "instabilityRadius": 50,
+        "secondaryExplosions": 3
+      },
+
+      "terrain": {
+        "deformationType": "massive_crater",
+        "deformationStrength": 20.0,
+        "affectsGravity": true,
+        "gravityAnomalyDuration": 5.0,
+        "gravityAnomalyStrength": 0.3
+      },
+
+      "visual": {
+        "trailColor": "#9b59b6",
+        "trailLength": 40,
+        "impactEffect": "quantum_explosion",
+        "soundEffect": "quantum_bomb",
+        "emissiveColor": "#ff00ff",
+        "emissiveIntensity": 4.0,
+        "distortionEffect": true
+      }
+    },
+
+    "phase_disruptor": {
+      "id": "phase_disruptor",
+      "name": "Phase Disruptor",
+      "category": "exotic",
+      "tier": 3,
+      "description": "Phases through shields and armor. Requires 1-turn charge. Bypasses defenses.",
+      "unlockLevel": 3,
+
+      "energyCost": 50,
+      "heatGeneration": 30,
+      "cooldownTurns": 3,
+      "chargeTurnsRequired": 1,
+
+      "damage": {
+        "direct": 55,
+        "explosionRadius": 10,
+        "falloffType": "constant",
+        "armorPiercing": 1.0,
+        "ignoresShields": true,
+        "phaseDamage": true
+      },
+
+      "projectile": {
+        "velocity": 110,
+        "mass": 3.0,
+        "radius": 0.18,
+        "dragCoefficient": 0.15,
+        "windResistance": 0.4,
+        "maxSpeed": 140,
+        "phaseMode": true
+      },
+
+      "behavior": {
+        "type": "phase",
+        "phaseFrequency": 2.0,
+        "phaseDuration": 0.3,
+        "ignoresTerrainCollision": false,
+        "ignoresTankCollision": true
+      },
+
+      "terrain": {
+        "deformationType": "precise_hole",
+        "deformationStrength": 3.0,
+        "affectsGravity": false
+      },
+
+      "visual": {
+        "trailColor": "#00ffff",
+        "trailLength": 35,
+        "impactEffect": "phase_breach",
+        "soundEffect": "phase_disruptor",
+        "phaseShimmer": true,
+        "warpEffect": true
+      }
+    },
+
+    "gravitic_missile": {
+      "id": "gravitic_missile",
+      "name": "Gravitic Missile",
+      "category": "gravitic",
+      "tier": 3,
+      "description": "Manipulates local gravity field, pulling enemies and terrain toward impact point.",
+      "unlockLevel": 2,
+
+      "energyCost": 45,
+      "heatGeneration": 18,
+      "cooldownTurns": 3,
+
+      "damage": {
+        "direct": 35,
+        "explosionRadius": 25,
+        "falloffType": "linear",
+        "armorPiercing": 0.1,
+        "graviticPull": true
+      },
+
+      "projectile": {
+        "velocity": 85,
+        "mass": 6.0,
+        "radius": 0.25,
+        "dragCoefficient": 0.3,
+        "windResistance": 0.7,
+        "maxSpeed": 105
+      },
+
+      "behavior": {
+        "type": "gravitic",
+        "pullRadius": 40,
+        "pullStrength": 10.0,
+        "pullDuration": 2.0,
+        "affectsTanks": true,
+        "affectsTerrain": true
+      },
+
+      "terrain": {
+        "deformationType": "pull_crater",
+        "deformationStrength": 10.0,
+        "affectsGravity": true,
+        "gravityAnomalyDuration": 3.0,
+        "gravityAnomalyStrength": 0.5
+      },
+
+      "visual": {
+        "trailColor": "#1abc9c",
+        "trailLength": 25,
+        "impactEffect": "gravity_well",
+        "soundEffect": "gravitic_missile",
+        "gravityDistortion": true,
+        "pullVisual": "gravity_lines"
+      }
+    },
+
+    "anti_grav_barrage": {
+      "id": "anti_grav_barrage",
+      "name": "Anti-Grav Barrage",
+      "category": "gravitic",
+      "tier": 3,
+      "description": "Creates anti-gravity zone that launches enemies upward and disrupts movement.",
+      "unlockLevel": 3,
+
+      "energyCost": 40,
+      "heatGeneration": 16,
+      "cooldownTurns": 3,
+
+      "damage": {
+        "direct": 25,
+        "explosionRadius": 30,
+        "falloffType": "quadratic",
+        "armorPiercing": 0.05,
+        "antiGravLaunch": true,
+        "launchForce": 15.0
+      },
+
+      "projectile": {
+        "velocity": 95,
+        "mass": 5.0,
+        "radius": 0.22,
+        "dragCoefficient": 0.25,
+        "windResistance": 0.9,
+        "maxSpeed": 115
+      },
+
+      "behavior": {
+        "type": "anti_gravitic",
+        "fieldRadius": 35,
+        "fieldDuration": 2.5,
+        "launchDirection": "upward",
+        "affectsTanks": true,
+        "affectsProjectiles": true
+      },
+
+      "terrain": {
+        "deformationType": "raised_mound",
+        "deformationStrength": -8.0,
+        "affectsGravity": true,
+        "gravityAnomalyDuration": 3.0,
+        "gravityAnomalyStrength": -0.6
+      },
+
+      "visual": {
+        "trailColor": "#00d4d4",
+        "trailLength": 22,
+        "impactEffect": "anti_grav_field",
+        "soundEffect": "anti_grav_barrage",
+        "antigravDistortion": true,
+        "floatingDebris": true
+      }
+    }
+  },
+
+  "weaponSets": {
+    "starter": {
+      "name": "Starter Set",
+      "description": "Basic weapons available from the start",
+      "weapons": ["rail_shot", "plasma_arc"]
+    },
+    "advanced": {
+      "name": "Advanced Set",
+      "description": "Unlocked after level 1",
+      "weapons": ["rail_shot", "plasma_arc", "cluster_swarm", "vector_seeker"]
+    },
+    "elite": {
+      "name": "Elite Set",
+      "description": "Unlocked after level 2",
+      "weapons": ["rail_shot", "plasma_arc", "cluster_swarm", "vector_seeker", "orbital_beacon", "emp_pulse", "gravitic_missile"]
+    },
+    "ultimate": {
+      "name": "Ultimate Set",
+      "description": "All weapons unlocked",
+      "weapons": ["rail_shot", "plasma_arc", "cluster_swarm", "vector_seeker", "orbital_beacon", "emp_pulse", "quantum_bomb", "phase_disruptor", "gravitic_missile", "anti_grav_barrage"]
+    }
+  },
+
+  "balancingNotes": {
+    "energyEconomy": "All weapons draw from shared 100-energy pool. Regeneration = 20 per turn (base).",
+    "heatManagement": "Heat reduces energy regen. Overheat (>100 heat) disables systems for 1 turn.",
+    "cooldownStrategy": "Cooldowns prevent rapid-fire of powerful weapons. Plan multi-turn strategies.",
+    "tierProgression": "Tier 1 = basic, Tier 2 = tactical, Tier 3 = game-changing",
+    "exoticWeapons": "Require multi-round charging. High risk, high reward.",
+    "graviticWeapons": "Unique terrain/movement manipulation. Zone control focus."
+  }
+}

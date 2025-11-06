@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scorched Earth MVP – Level Preview</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      overflow: hidden;
+      font-family: 'Courier New', monospace;
+    }
+
+    #container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: #000;
+      border: 2px solid #00b7c4;
+      box-shadow: 0 0 20px rgba(0, 183, 196, 0.3);
+    }
+
+    #info {
+      color: #00d4ff;
+      text-align: center;
+      max-width: 1200px;
+    }
+
+    #info h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    }
+
+    #info p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #a0e0e8;
+    }
+
+    #legend {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-top: 15px;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid #00b7c4;
+      border-radius: 5px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .legend-color {
+      width: 30px;
+      height: 20px;
+      border: 1px solid #fff;
+      border-radius: 3px;
+    }
+
+    #controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #00b7c4;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      background: #00d4ff;
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    }
+  </style>
+</head>
+<body>
+<div id="container">
+  <div id="info">
+    <h1 id="level-name">Loading...</h1>
+    <p id="level-description"></p>
+
+    <div id="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background: #13181d;"></div>
+        <span>Terrain</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: rgba(0, 183, 196, 0.5);"></div>
+        <span>Cave Ceiling</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: rgba(0, 255, 180, 0.3);"></div>
+        <span>Toxic Gas</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: rgba(120, 255, 255, 0.2);"></div>
+        <span>Ion Storm</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: rgba(255, 230, 120, 0.3);"></div>
+        <span>EMP Node</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #00ff9a;"></div>
+        <span>Spawn Points</span>
+      </div>
+    </div>
+
+    <div id="controls">
+      <button onclick="toggleAnimation()">Toggle Animation</button>
+      <button onclick="resetView()">Reset View</button>
+      <button onclick="downloadLevel()">Download JSON</button>
+    </div>
+  </div>
+
+  <canvas id="gameCanvas" width="1200" height="675"></canvas>
+</div>
+
+<script type="module">
+  // --- Load level definition ---
+  let LEVEL_MVP_01;
+
+  async function loadLevel() {
+    try {
+      const response = await fetch('levels/mvp_stage_01.json');
+      LEVEL_MVP_01 = await response.json();
+      console.log('Level loaded:', LEVEL_MVP_01);
+      updateInfo();
+      render();
+    } catch (error) {
+      console.error('Failed to load level:', error);
+      // Fallback to embedded level data
+      LEVEL_MVP_01 = getEmbeddedLevel();
+      updateInfo();
+      render();
+    }
+  }
+
+  function getEmbeddedLevel() {
+    // Embedded fallback in case JSON fetch fails
+    return ${JSON.stringify({
+      id: "MVP_STAGE_01",
+      name: "Broken Arch Basin",
+      description: "A shattered bridge spans a toxic basin. Master the skill shot through the cave or rain fire from above.",
+      worldWidth: 2400,
+      worldHeight: 1350,
+      terrain: {
+        points: [
+          {x: 0, y: 880}, {x: 150, y: 840}, {x: 350, y: 820}, {x: 550, y: 830},
+          {x: 750, y: 900}, {x: 900, y: 940}, {x: 1050, y: 960},
+          {x: 1200, y: 940}, {x: 1350, y: 920}, {x: 1500, y: 930},
+          {x: 1650, y: 880}, {x: 1850, y: 840}, {x: 2050, y: 820},
+          {x: 2250, y: 830}, {x: 2400, y: 870}
+        ]
+      },
+      caveCeiling: [
+        {from: {x: 900, y: 780}, to: {x: 1125, y: 720}},
+        {from: {x: 1125, y: 720}, to: {x: 1375, y: 720}},
+        {from: {x: 1375, y: 720}, to: {x: 1600, y: 780}}
+      ],
+      hazards: [
+        {id: "gas_basin_center", type: "gas", center: {x: 1125, y: 980}, radius: 260, intensity: 0.7, pulse: true},
+        {id: "ion_mid_band", type: "ion", center: {x: 1200, y: 520}, radius: 700, intensity: 0.4, noiseAmplitude: 0.15},
+        {id: "emp_right_node", type: "emp", center: {x: 1900, y: 820}, radius: 220, intensity: 1.0, pulse: true}
+      ],
+      spawns: [
+        {id: "P1_left_plateau", position: {x: 350, y: 820}, radius: 40},
+        {id: "P2_right_plateau", position: {x: 2050, y: 820}, radius: 40},
+        {id: "P3_cave_entrance", position: {x: 900, y: 900}, radius: 35},
+        {id: "P4_right_slope_mid", position: {x: 1750, y: 860}, radius: 35}
+      ],
+      background: {
+        skyGradientTop: "#050814",
+        skyGradientBottom: "#0b101b",
+        starDensity: 0.35,
+        hazeColor: "rgba(0, 183, 196, 0.18)"
+      }
+    }, null, 2)};
+  }
+
+  function updateInfo() {
+    document.getElementById('level-name').textContent = LEVEL_MVP_01.name || 'MVP Stage 1';
+    document.getElementById('level-description').textContent = LEVEL_MVP_01.description || '';
+  }
+
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+
+  const viewport = {
+    width: canvas.width,
+    height: canvas.height,
+  };
+
+  let animationEnabled = true;
+  let animationFrame = 0;
+
+  // Simple world -> screen transform
+  function worldToScreen(p) {
+    const sx = (p.x / LEVEL_MVP_01.worldWidth) * viewport.width;
+    const sy = (p.y / LEVEL_MVP_01.worldHeight) * viewport.height;
+    return { x: sx, y: sy };
+  }
+
+  function drawBackground() {
+    const bg = LEVEL_MVP_01.background;
+    const grad = ctx.createLinearGradient(0, 0, 0, viewport.height);
+    grad.addColorStop(0, bg.skyGradientTop);
+    grad.addColorStop(1, bg.skyGradientBottom);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, viewport.width, viewport.height);
+
+    // Starfield
+    const starCount = Math.floor(200 * bg.starDensity);
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    for (let i = 0; i < starCount; i++) {
+      const x = Math.random() * viewport.width;
+      const y = Math.random() * viewport.height * 0.6;
+      const r = Math.random() * 1.2 + 0.3;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = "#a9e9ff";
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawTerrain() {
+    const pts = LEVEL_MVP_01.terrain.points.map(worldToScreen);
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      ctx.lineTo(pts[i].x, pts[i].y);
+    }
+    // Close polygon
+    ctx.lineTo(pts[pts.length - 1].x, viewport.height);
+    ctx.lineTo(pts[0].x, viewport.height);
+    ctx.closePath();
+
+    // Terrain fill with gradient
+    const grad = ctx.createLinearGradient(0, viewport.height * 0.4, 0, viewport.height);
+    grad.addColorStop(0, "#13181d");
+    grad.addColorStop(1, "#06090c");
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Edge highlight
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(0, 183, 196, 0.6)";
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawCaveCeiling() {
+    if (!LEVEL_MVP_01.caveCeiling) return;
+    ctx.save();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "rgba(0, 183, 196, 0.5)";
+    ctx.shadowColor = "rgba(0, 183, 196, 0.5)";
+    ctx.shadowBlur = 8;
+
+    LEVEL_MVP_01.caveCeiling.forEach(seg => {
+      const a = worldToScreen(seg.from);
+      const b = worldToScreen(seg.to);
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+    });
+
+    ctx.restore();
+  }
+
+  function drawHazards() {
+    LEVEL_MVP_01.hazards.forEach(h => {
+      const center = worldToScreen(h.center);
+      const radius = (h.radius / LEVEL_MVP_01.worldWidth) * viewport.width;
+
+      if (h.type === "gas") {
+        drawGasCloud(center, radius, h.intensity, h.pulse);
+      } else if (h.type === "ion") {
+        drawIonBand(center, radius, h.intensity);
+      } else if (h.type === "emp") {
+        drawEmpNode(center, radius, h.intensity, h.pulse);
+      }
+    });
+  }
+
+  function drawGasCloud(center, radius, intensity, pulse) {
+    const pulseScale = pulse ? 1.0 + Math.sin(animationFrame * 0.05) * 0.1 : 1.0;
+    const actualRadius = radius * pulseScale;
+
+    const grad = ctx.createRadialGradient(
+      center.x, center.y, actualRadius * 0.1,
+      center.x, center.y, actualRadius
+    );
+    grad.addColorStop(0.0, `rgba(0, 255, 180, ${0.25 + 0.2 * intensity})`);
+    grad.addColorStop(0.7, `rgba(0, 120, 80, ${0.18 * intensity})`);
+    grad.addColorStop(1.0, "rgba(0, 0, 0, 0)");
+
+    ctx.save();
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, actualRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Add label
+    ctx.fillStyle = "#00ff9a";
+    ctx.font = "12px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("TOXIC", center.x, center.y - actualRadius - 10);
+
+    ctx.restore();
+  }
+
+  function drawIonBand(center, radius, intensity) {
+    ctx.save();
+    const bandHeight = radius * 0.25;
+    const topY = center.y - bandHeight / 2;
+    const bottomY = center.y + bandHeight / 2;
+
+    const grad = ctx.createLinearGradient(0, topY, 0, bottomY);
+    grad.addColorStop(0, `rgba(0, 200, 255, ${0.2 + 0.2 * intensity})`);
+    grad.addColorStop(0.5, `rgba(120, 255, 255, ${0.15 + 0.1 * intensity})`);
+    grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, topY, viewport.width, bandHeight);
+
+    // Animated streaks
+    ctx.globalAlpha = 0.4;
+    for (let i = 0; i < 12; i++) {
+      const x = (viewport.width / 12) * i + Math.sin(animationFrame * 0.1 + i) * 20;
+      ctx.beginPath();
+      ctx.moveTo(x, topY);
+      ctx.lineTo(x + 10, bottomY);
+      ctx.strokeStyle = "rgba(150, 255, 255, 0.5)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Label
+    ctx.globalAlpha = 1.0;
+    ctx.fillStyle = "#00d4ff";
+    ctx.font = "12px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("ION STORM", viewport.width / 2, topY - 10);
+
+    ctx.restore();
+  }
+
+  function drawEmpNode(center, radius, intensity, pulse) {
+    const pulseScale = pulse ? 1.0 + Math.sin(animationFrame * 0.08) * 0.15 : 1.0;
+    const actualRadius = radius * pulseScale;
+
+    ctx.save();
+    // Outer ring
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, actualRadius, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(255, 230, 120, ${0.5 + 0.3 * intensity * pulseScale})`;
+    ctx.lineWidth = 3;
+    ctx.shadowColor = "rgba(255, 230, 120, 0.8)";
+    ctx.shadowBlur = 12;
+    ctx.stroke();
+
+    // Inner core
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, actualRadius * 0.35, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.fill();
+
+    // Radial spikes
+    ctx.globalAlpha = 0.7;
+    const spikes = 10;
+    for (let i = 0; i < spikes; i++) {
+      const angle = (Math.PI * 2 * i) / spikes + animationFrame * 0.02;
+      const innerR = actualRadius * 0.35;
+      const outerR = actualRadius * 0.95;
+      const ix = center.x + Math.cos(angle) * innerR;
+      const iy = center.y + Math.sin(angle) * innerR;
+      const ox = center.x + Math.cos(angle) * outerR;
+      const oy = center.y + Math.sin(angle) * outerR;
+
+      ctx.beginPath();
+      ctx.moveTo(ix, iy);
+      ctx.lineTo(ox, oy);
+      ctx.strokeStyle = "rgba(255, 250, 200, 0.9)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Label
+    ctx.globalAlpha = 1.0;
+    ctx.fillStyle = "#ffe678";
+    ctx.font = "12px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("EMP", center.x, center.y - actualRadius - 10);
+
+    ctx.restore();
+  }
+
+  function drawSpawns() {
+    ctx.save();
+    LEVEL_MVP_01.spawns.forEach(spawn => {
+      const p = worldToScreen(spawn.position);
+      const r = (spawn.radius / LEVEL_MVP_01.worldWidth) * viewport.width;
+
+      // Spawn zone circle
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0, 255, 154, 0.1)";
+      ctx.fill();
+      ctx.strokeStyle = "#00ff9a";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Center point
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+      ctx.fillStyle = "#00ff9a";
+      ctx.fill();
+
+      // Label
+      ctx.font = "11px monospace";
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.fillText(spawn.id, p.x, p.y - r - 5);
+    });
+    ctx.restore();
+  }
+
+  function render() {
+    if (!LEVEL_MVP_01) return;
+
+    drawBackground();
+    drawTerrain();
+    drawCaveCeiling();
+    drawHazards();
+    drawSpawns();
+
+    if (animationEnabled) {
+      animationFrame++;
+      requestAnimationFrame(render);
+    }
+  }
+
+  // Controls
+  window.toggleAnimation = function() {
+    animationEnabled = !animationEnabled;
+    if (animationEnabled) {
+      requestAnimationFrame(render);
+    }
+  };
+
+  window.resetView = function() {
+    animationFrame = 0;
+    render();
+  };
+
+  window.downloadLevel = function() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(LEVEL_MVP_01, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "mvp_stage_01.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
+  // Initialize
+  loadLevel();
+</script>
+</body>
+</html>

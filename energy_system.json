@@ -1,0 +1,398 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Energy System Configuration",
+  "description": "Governs the energy economy, heat management, regeneration, cooling, and terrain-dependent movement costs for the hover tank gameplay.",
+  "version": "1.0.0",
+
+  "energyEconomy": {
+    "description": "Core energy pool system shared across all tank systems (movement, shields, weapons)",
+
+    "baseEnergy": {
+      "maximum": 100,
+      "startingAmount": 100,
+      "minimumReserve": 5,
+      "description": "Tanks start with full energy. Minimum reserve prevents complete drain."
+    },
+
+    "regeneration": {
+      "baseRegenPerTurn": 20,
+      "description": "Base energy regenerated at the start of each turn",
+
+      "heatEfficiencyModifier": {
+        "description": "Heat reduces energy regeneration efficiency",
+        "formula": "baseRegen * (1 - (currentHeat / maxHeat) * heatPenaltyFactor)",
+        "heatPenaltyFactor": 0.5,
+        "examples": {
+          "noHeat": "20 energy (100% efficiency at 0 heat)",
+          "halfHeat": "15 energy (75% efficiency at 50 heat)",
+          "nearOverheat": "10 energy (50% efficiency at 100 heat)"
+        }
+      },
+
+      "terrainModifiers": {
+        "description": "Certain terrain types affect energy regeneration",
+        "default": 1.0,
+        "energyWell": 1.5,
+        "radiated": 0.7,
+        "magnetic": 0.8,
+        "frozen": 0.9
+      },
+
+      "stageModifiers": {
+        "description": "Stage-specific energy regeneration multipliers",
+        "lunaCrater": 1.0,
+        "redFrontier": 0.9,
+        "gasgiantRim": 1.1,
+        "iceMoon": 0.85,
+        "magmaCore": 1.2
+      }
+    },
+
+    "energyStorage": {
+      "description": "Optional upgrade system for increased energy capacity",
+      "baseCapacity": 100,
+      "upgradeIncrements": 20,
+      "maxUpgradeLevel": 3,
+      "capacityPerLevel": {
+        "level0": 100,
+        "level1": 120,
+        "level2": 140,
+        "level3": 160
+      }
+    }
+  },
+
+  "heatSystem": {
+    "description": "Heat accumulates from weapon usage and reduces system efficiency",
+
+    "heatPool": {
+      "maximum": 100,
+      "startingHeat": 0,
+      "overheatThreshold": 100,
+      "criticalThreshold": 80,
+      "warningThreshold": 60,
+      "description": "Heat above 100 triggers overheat. Above 80 = critical warnings."
+    },
+
+    "heatDissipation": {
+      "passiveCoolingPerTurn": 10,
+      "description": "Heat naturally cools by 10 per turn without active cooling",
+
+      "activeCooling": {
+        "description": "Spend energy to cool faster",
+        "energyCostPerHeat": 0.5,
+        "coolingRate": 20,
+        "formula": "energyCost = heatCooled * 0.5",
+        "examples": {
+          "cool20Heat": "10 energy to cool 20 heat",
+          "cool40Heat": "20 energy to cool 40 heat"
+        }
+      },
+
+      "environmentModifiers": {
+        "description": "Environment affects cooling efficiency",
+        "default": 1.0,
+        "iceMoon": 1.3,
+        "magmaCore": 0.6,
+        "gasgiantRim": 1.1,
+        "redFrontier": 0.8
+      }
+    },
+
+    "overheat": {
+      "description": "Exceeding 100 heat disables tank systems",
+      "disableDuration": 1,
+      "disabledSystems": ["weapons", "shields", "active_cooling"],
+      "movementPenalty": 0.5,
+      "forcedCooling": true,
+      "emergencyCoolingRate": 30,
+      "visualEffect": "overheat_warning"
+    },
+
+    "heatEffects": {
+      "description": "Heat affects system performance as it builds up",
+      "thresholds": {
+        "0-40": {
+          "status": "optimal",
+          "weaponAccuracy": 1.0,
+          "energyRegen": 1.0,
+          "visualState": "normal"
+        },
+        "40-60": {
+          "status": "warm",
+          "weaponAccuracy": 0.95,
+          "energyRegen": 0.9,
+          "visualState": "heat_shimmer"
+        },
+        "60-80": {
+          "status": "hot",
+          "weaponAccuracy": 0.9,
+          "energyRegen": 0.75,
+          "visualState": "vents_glowing"
+        },
+        "80-100": {
+          "status": "critical",
+          "weaponAccuracy": 0.85,
+          "energyRegen": 0.5,
+          "visualState": "critical_warning"
+        },
+        "100+": {
+          "status": "overheated",
+          "weaponAccuracy": 0.0,
+          "energyRegen": 0.0,
+          "visualState": "overheat_shutdown"
+        }
+      }
+    }
+  },
+
+  "movementCosts": {
+    "description": "Energy consumed when moving across different terrain types",
+
+    "baseCost": {
+      "perStep": 3,
+      "description": "Base energy cost per step on flat, optimal terrain"
+    },
+
+    "terrainMultipliers": {
+      "description": "Terrain type affects movement energy cost",
+      "flat": 1.0,
+      "uphill": 1.8,
+      "downhill": 0.7,
+      "rough": 1.5,
+      "water": 2.0,
+      "ice": 0.9,
+      "sand": 1.4,
+      "lava": 2.5,
+      "magnetic": 1.3
+    },
+
+    "slopeModifier": {
+      "description": "Energy cost increases with terrain slope angle",
+      "formula": "baseCost * (1 + (slopeAngle / maxSlopeAngle) * slopePenalty)",
+      "slopePenalty": 0.8,
+      "maxSlopeAngle": 45,
+      "examples": {
+        "flatTerrain": "3 energy (0° slope)",
+        "mediumSlope": "4.2 energy (22.5° slope)",
+        "maxSlope": "5.4 energy (45° slope)"
+      }
+    },
+
+    "hoverHeightCost": {
+      "description": "Higher hover height requires more energy",
+      "lowHover": {
+        "height": 0.3,
+        "multiplier": 0.9
+      },
+      "normalHover": {
+        "height": 0.5,
+        "multiplier": 1.0
+      },
+      "highHover": {
+        "height": 0.7,
+        "multiplier": 1.2
+      }
+    },
+
+    "consecutiveMovePenalty": {
+      "description": "Moving multiple steps in one turn increases cost",
+      "firstStep": 1.0,
+      "secondStep": 1.1,
+      "thirdStep": 1.25,
+      "fourthStep": 1.4,
+      "fifthStep": 1.6,
+      "formula": "energyCost = baseCost * terrainMultiplier * stepPenalty"
+    },
+
+    "movementBudget": {
+      "description": "Maximum movement per turn based on energy availability",
+      "maxStepsPerTurn": 5,
+      "minimumEnergyRequired": 3,
+      "reserveEnergyBuffer": 5
+    }
+  },
+
+  "shieldSystem": {
+    "description": "Optional shield system powered by energy",
+
+    "shieldCapacity": {
+      "maximum": 50,
+      "rechargeRate": 10,
+      "energyCostPerShieldPoint": 1.0,
+      "description": "Shields provide damage absorption but consume energy"
+    },
+
+    "shieldActivation": {
+      "activationCost": 15,
+      "maintenanceCostPerTurn": 5,
+      "deactivationDelay": 0,
+      "description": "Activating shields costs energy upfront, then maintenance per turn"
+    },
+
+    "shieldEfficiency": {
+      "lowEnergy": {
+        "threshold": 30,
+        "efficiency": 0.7
+      },
+      "normalEnergy": {
+        "threshold": 50,
+        "efficiency": 1.0
+      },
+      "highEnergy": {
+        "threshold": 100,
+        "efficiency": 1.0
+      }
+    },
+
+    "shieldBreak": {
+      "description": "When shields fail, there's a brief vulnerability period",
+      "vulnerabilityDuration": 1,
+      "rechargeDelay": 2,
+      "energyCostToRestart": 20
+    }
+  },
+
+  "specialAbilities": {
+    "description": "Energy-powered special abilities beyond weapons",
+
+    "boost": {
+      "name": "Turbo Boost",
+      "energyCost": 20,
+      "effect": "Double movement range for one turn",
+      "cooldown": 3,
+      "heatGeneration": 15
+    },
+
+    "overcharge": {
+      "name": "Weapon Overcharge",
+      "energyCost": 25,
+      "effect": "Next weapon does 50% more damage",
+      "cooldown": 4,
+      "heatGeneration": 25,
+      "duration": 1
+    },
+
+    "emergency_repair": {
+      "name": "Emergency Repair",
+      "energyCost": 30,
+      "effect": "Restore 25 HP",
+      "cooldown": 5,
+      "heatGeneration": 10,
+      "channelTime": 0
+    },
+
+    "cloak": {
+      "name": "Stealth Cloak",
+      "energyCost": 35,
+      "energyCostPerTurn": 10,
+      "effect": "Become untargetable by homing weapons",
+      "cooldown": 5,
+      "heatGeneration": 20,
+      "duration": 2
+    }
+  },
+
+  "energyRecoveryItems": {
+    "description": "Collectible items that restore energy or reduce heat",
+
+    "energyCell": {
+      "name": "Energy Cell",
+      "energyRestore": 30,
+      "rarity": "common",
+      "spawnChance": 0.15
+    },
+
+    "coolingPack": {
+      "name": "Cooling Pack",
+      "heatReduction": 40,
+      "rarity": "common",
+      "spawnChance": 0.15
+    },
+
+    "powerCore": {
+      "name": "Power Core",
+      "energyRestore": 50,
+      "heatReduction": 20,
+      "rarity": "rare",
+      "spawnChance": 0.05
+    }
+  },
+
+  "balancingParameters": {
+    "description": "Global tuning knobs for energy economy balance",
+
+    "globalEnergyMultiplier": 1.0,
+    "globalHeatMultiplier": 1.0,
+    "globalCoolingMultiplier": 1.0,
+    "globalMovementCostMultiplier": 1.0,
+
+    "playtestingNotes": {
+      "energyStarvation": "If players run out of energy too often, increase baseRegenPerTurn or decrease weapon costs",
+      "heatManagement": "If overheat happens too frequently, decrease weapon heat generation or increase passive cooling",
+      "movementRestriction": "If movement feels too expensive, reduce baseCost or terrain multipliers",
+      "pacing": "Ideal turn should allow 1-2 weapon shots OR movement + 1 shot. Adjust costs accordingly."
+    }
+  },
+
+  "hudDisplay": {
+    "description": "Recommended UI elements for player feedback",
+
+    "energyBar": {
+      "position": "bottom-left",
+      "color": "#00d4ff",
+      "warningThreshold": 30,
+      "criticalThreshold": 15,
+      "showNumeric": true,
+      "showRegenRate": true
+    },
+
+    "heatBar": {
+      "position": "bottom-left",
+      "color": "#ff4500",
+      "warningThreshold": 60,
+      "criticalThreshold": 80,
+      "showNumeric": true,
+      "showCoolingRate": true
+    },
+
+    "tooltips": {
+      "showEnergyCost": true,
+      "showHeatGeneration": true,
+      "showMovementCost": true,
+      "showCooldownTimers": true
+    }
+  },
+
+  "difficultyPresets": {
+    "description": "Difficulty modes that adjust energy economy",
+
+    "easy": {
+      "energyRegenMultiplier": 1.5,
+      "heatGenerationMultiplier": 0.7,
+      "movementCostMultiplier": 0.8,
+      "passiveCooling": 15
+    },
+
+    "normal": {
+      "energyRegenMultiplier": 1.0,
+      "heatGenerationMultiplier": 1.0,
+      "movementCostMultiplier": 1.0,
+      "passiveCooling": 10
+    },
+
+    "hard": {
+      "energyRegenMultiplier": 0.7,
+      "heatGenerationMultiplier": 1.3,
+      "movementCostMultiplier": 1.2,
+      "passiveCooling": 7
+    },
+
+    "expert": {
+      "energyRegenMultiplier": 0.5,
+      "heatGenerationMultiplier": 1.5,
+      "movementCostMultiplier": 1.5,
+      "passiveCooling": 5
+    }
+  }
+}

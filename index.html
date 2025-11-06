@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artillery Game - Modern Scorched Earth</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- HUD Overlay -->
+        <div id="hud">
+            <div id="turn-info">
+                <span id="current-player">Player 1</span>
+                <span id="current-weapon">Rail Shot</span>
+            </div>
+
+            <div id="wind-indicator">
+                <span>Wind: </span>
+                <span id="wind-value">0</span>
+                <span id="wind-arrow">→</span>
+            </div>
+
+            <div id="power-meter">
+                <div class="meter-label">Power</div>
+                <div class="meter-bar">
+                    <div id="power-fill"></div>
+                </div>
+                <span id="power-value">0%</span>
+            </div>
+
+            <div id="angle-display">
+                <span>Angle: </span>
+                <span id="angle-value">0°</span>
+            </div>
+        </div>
+
+        <!-- Game Menu -->
+        <div id="game-menu" class="hidden">
+            <h2>Artillery Game</h2>
+            <div class="menu-section">
+                <h3>Select Stage</h3>
+                <button class="stage-btn" data-stage="lunaCrater">Luna Crater</button>
+                <button class="stage-btn" data-stage="redFrontier">Red Frontier</button>
+                <button class="stage-btn" data-stage="gasgiantRim">Gas Giant Rim</button>
+            </div>
+
+            <div class="menu-section">
+                <h3>Number of Tanks</h3>
+                <input type="range" id="tank-count" min="2" max="6" value="4">
+                <span id="tank-count-display">4</span>
+            </div>
+
+            <div class="menu-section">
+                <h3>AI Players</h3>
+                <input type="range" id="ai-count" min="0" max="5" value="3">
+                <span id="ai-count-display">3</span>
+            </div>
+
+            <button id="start-game" class="primary-btn">Start Game</button>
+        </div>
+
+        <!-- Weapon Selection -->
+        <div id="weapon-panel">
+            <div class="weapon-slot" data-weapon="railShot" data-key="1">
+                <span class="weapon-key">1</span>
+                <span class="weapon-name">Rail</span>
+            </div>
+            <div class="weapon-slot" data-weapon="plasmaArc" data-key="2">
+                <span class="weapon-key">2</span>
+                <span class="weapon-name">Plasma</span>
+            </div>
+            <div class="weapon-slot" data-weapon="clusterSwarm" data-key="3">
+                <span class="weapon-key">3</span>
+                <span class="weapon-name">Cluster</span>
+            </div>
+            <div class="weapon-slot" data-weapon="vectorSeeker" data-key="4">
+                <span class="weapon-key">4</span>
+                <span class="weapon-name">Seeker</span>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over" class="hidden">
+            <h2>Game Over!</h2>
+            <h3 id="winner-text"></h3>
+            <button id="play-again" class="primary-btn">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>

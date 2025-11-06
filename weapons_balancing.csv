@@ -1,0 +1,11 @@
+weaponId,name,category,tier,unlockLevel,energyCost,heatGeneration,cooldownTurns,chargeTurns,damageDir,expRadius,falloffType,armorPierce,velocity,mass,dragCoeff,windResist,maxSpeed,deformType,deformStr,notes
+rail_shot,Rail Shot,kinetic,1,0,10,5,0,0,35,15,linear,0.2,150,5.0,0.1,0.5,200,crater,8.0,Basic accurate kinetic weapon
+plasma_arc,Plasma Arc,energy,2,0,25,15,1,0,30,20,quadratic,0.0,80,2.0,0.3,1.0,100,crater,5.0,AoE with burn-over-time field
+cluster_swarm,Cluster Swarm,smart,2,1,30,10,2,0,20,12,linear,0.1,100,8.0,0.4,1.2,120,crater,4.0,Splits into 6 sub-munitions at 80% flight
+vector_seeker,Vector Seeker,smart,2,1,35,12,2,0,40,18,linear,0.15,90,4.0,0.25,1.0,110,crater,6.0,Semi-guided homing with environmental variability
+orbital_beacon,Orbital Beacon,utility,2,2,40,8,3,0,0,0,constant,0.0,120,0.5,0.05,0.0,150,crater,12.0,Marks for delayed orbital strike (60 dmg after 1 turn)
+emp_pulse,EMP Pulse,utility,2,2,30,20,3,0,0,35,quadratic,0.0,100,1.0,0.2,0.8,120,none,0,Disables systems for 1 turn (no physical damage)
+quantum_bomb,Quantum Bomb,exotic,3,3,60,35,4,2,80,40,linear,0.3,70,15.0,0.5,0.3,90,massive_crater,20.0,Requires 2-turn charge; massive deformation
+phase_disruptor,Phase Disruptor,exotic,3,3,50,30,3,1,55,10,constant,1.0,110,3.0,0.15,0.4,140,precise_hole,3.0,Phases through shields; requires 1-turn charge
+gravitic_missile,Gravitic Missile,gravitic,3,2,45,18,3,0,35,25,linear,0.1,85,6.0,0.3,0.7,105,pull_crater,10.0,Pulls enemies/terrain toward impact for 2s
+anti_grav_barrage,Anti-Grav Barrage,gravitic,3,3,40,16,3,0,25,30,quadratic,0.05,95,5.0,0.25,0.9,115,raised_mound,-8.0,Creates anti-gravity zone launching enemies up

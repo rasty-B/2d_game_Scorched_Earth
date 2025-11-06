@@ -1,0 +1,224 @@
+/**
+ * AI System for Computer-Controlled Tanks
+ * Implements difficulty levels: easy, medium, hard
+ */
+
+import { simulateTrajectory } from './physics.js';
+
+export class TankAI {
+    constructor(difficulty = 'medium') {
+        this.difficulty = difficulty;
+        this.lastShot = null;
+        this.targetTank = null;
+    }
+
+    /**
+     * Calculate AI's shot for this turn
+     */
+    calculateShot(aiTank, enemyTanks, terrain, stage, weapon) {
+        // Select target (closest alive enemy)
+        this.targetTank = this.selectTarget(aiTank, enemyTanks);
+
+        if (!this.targetTank) {
+            return this.randomShot();
+        }
+
+        switch (this.difficulty) {
+            case 'easy':
+                return this.easyShot(aiTank, this.targetTank, terrain, stage, weapon);
+            case 'medium':
+                return this.mediumShot(aiTank, this.targetTank, terrain, stage, weapon);
+            case 'hard':
+                return this.hardShot(aiTank, this.targetTank, terrain, stage, weapon);
+            default:
+                return this.mediumShot(aiTank, this.targetTank, terrain, stage, weapon);
+        }
+    }
+
+    /**
+     * Select target tank
+     */
+    selectTarget(aiTank, enemyTanks) {
+        let closestTank = null;
+        let closestDist = Infinity;
+
+        for (let tank of enemyTanks) {
+            if (!tank.isAlive || tank === aiTank) continue;
+
+            const dx = tank.x - aiTank.x;
+            const dy = tank.y - aiTank.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < closestDist) {
+                closestDist = dist;
+                closestTank = tank;
+            }
+        }
+
+        return closestTank;
+    }
+
+    /**
+     * Easy AI - Random with some direction toward target
+     */
+    easyShot(aiTank, target, terrain, stage, weapon) {
+        const dx = target.x - aiTank.x;
+        const dy = target.y - aiTank.y;
+
+        // Calculate rough angle toward target
+        let angle = Math.atan2(dy, dx);
+
+        // Add significant random error
+        angle += (Math.random() - 0.5) * Math.PI / 3; // ±30 degrees
+
+        // Random power between 40-80%
+        const power = 40 + Math.random() * 40;
+
+        return { angle, power };
+    }
+
+    /**
+     * Medium AI - Aims at target with some adjustment based on previous miss
+     */
+    mediumShot(aiTank, target, terrain, stage, weapon) {
+        const dx = target.x - aiTank.x;
+        const dy = target.y - aiTank.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Calculate angle
+        let angle = Math.atan2(dy, dx);
+
+        // Adjust for gravity (simple approximation)
+        const gravityCompensation = (stage.gravity * distance) / 1000;
+        angle -= gravityCompensation;
+
+        // Adjust based on last shot if we have data
+        if (this.lastShot) {
+            const missDistance = this.lastShot.missDistance || 0;
+            if (missDistance > 50) {
+                // Adjust angle slightly
+                angle += (Math.random() - 0.5) * 0.1;
+            }
+        }
+
+        // Add small random error
+        angle += (Math.random() - 0.5) * Math.PI / 6; // ±15 degrees
+
+        // Calculate power based on distance
+        let power = Math.min(100, (distance / 10) + 30);
+        power += (Math.random() - 0.5) * 20; // Add some variance
+
+        power = Math.max(20, Math.min(100, power));
+
+        return { angle, power };
+    }
+
+    /**
+     * Hard AI - Simulates shots to find best trajectory
+     */
+    hardShot(aiTank, target, terrain, stage, weapon) {
+        const bestShot = this.findBestTrajectory(
+            aiTank,
+            target,
+            terrain,
+            stage,
+            weapon
+        );
+
+        // Add minimal random error
+        bestShot.angle += (Math.random() - 0.5) * Math.PI / 12; // ±7.5 degrees
+        bestShot.power += (Math.random() - 0.5) * 10;
+
+        bestShot.power = Math.max(20, Math.min(100, bestShot.power));
+
+        return bestShot;
+    }
+
+    /**
+     * Find best trajectory through simulation
+     */
+    findBestTrajectory(aiTank, target, terrain, stage, weapon) {
+        let bestAngle = 0;
+        let bestPower = 50;
+        let bestDistance = Infinity;
+
+        // Try different angle and power combinations
+        const angleSteps = 15;
+        const powerSteps = 10;
+
+        for (let a = 0; a < angleSteps; a++) {
+            const angle = -Math.PI / 2 + (a / angleSteps) * Math.PI;
+
+            for (let p = 0; p < powerSteps; p++) {
+                const power = 30 + (p / powerSteps) * 70;
+
+                // Simulate trajectory
+                const trajectory = simulateTrajectory(
+                    aiTank.x,
+                    aiTank.y,
+                    angle,
+                    power,
+                    weapon,
+                    stage.gravity,
+                    0, // Ignore wind for now (could be improved)
+                    2.0
+                );
+
+                // Find closest point to target
+                let closestDist = Infinity;
+
+                for (let point of trajectory) {
+                    // Check if point is in/near terrain
+                    if (terrain.isInside(point.x, point.y) ||
+                        Math.abs(point.y - terrain.getHeightAt(point.x)) < 20) {
+
+                        const dx = point.x - target.x;
+                        const dy = point.y - target.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < closestDist) {
+                            closestDist = dist;
+                        }
+                    }
+                }
+
+                // Update best shot if this is closer
+                if (closestDist < bestDistance) {
+                    bestDistance = closestDist;
+                    bestAngle = angle;
+                    bestPower = power;
+                }
+            }
+        }
+
+        return { angle: bestAngle, power: bestPower };
+    }
+
+    /**
+     * Random shot fallback
+     */
+    randomShot() {
+        const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI;
+        const power = 30 + Math.random() * 50;
+        return { angle, power };
+    }
+
+    /**
+     * Record shot result for learning
+     */
+    recordShot(angle, power, hitDistance) {
+        this.lastShot = {
+            angle,
+            power,
+            missDistance: hitDistance
+        };
+    }
+
+    /**
+     * Choose weapon (always use current weapon for MVP)
+     */
+    chooseWeapon(availableWeapons) {
+        // For MVP, just use the first weapon
+        return availableWeapons[0];
+    }
+}

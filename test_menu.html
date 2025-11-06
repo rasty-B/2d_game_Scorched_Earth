@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Test</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Game Menu -->
+        <div id="game-menu" class="hidden">
+            <h2>Artillery Game</h2>
+            <div class="menu-section">
+                <h3>Select Stage</h3>
+                <button class="stage-btn" data-stage="lunaCrater">Luna Crater</button>
+                <button class="stage-btn" data-stage="redFrontier">Red Frontier</button>
+                <button class="stage-btn" data-stage="gasgiantRim">Gas Giant Rim</button>
+            </div>
+            <button id="start-game" class="primary-btn">Start Game</button>
+        </div>
+    </div>
+
+    <script>
+        // Test script
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded');
+            const menu = document.getElementById('game-menu');
+            console.log('Menu element:', menu);
+            console.log('Menu has hidden class:', menu.classList.contains('hidden'));
+
+            // Show menu after 1 second
+            setTimeout(() => {
+                console.log('Removing hidden class...');
+                menu.classList.remove('hidden');
+                console.log('Menu should now be visible');
+                console.log('Menu classes:', menu.className);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

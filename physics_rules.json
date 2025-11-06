@@ -1,0 +1,465 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Physics Rules Configuration",
+  "description": "Base physics constants and environmental rules governing projectile motion, gravity, wind, terrain deformation, and hover mechanics.",
+  "version": "1.0.0",
+
+  "physicsEngine": {
+    "description": "Core physics simulation parameters",
+
+    "simulation": {
+      "fixedTimestep": 0.01666667,
+      "description": "60 Hz fixed timestep (1/60 seconds)",
+      "maxSubsteps": 5,
+      "simulationSpeed": 1.0,
+      "deterministic": true
+    },
+
+    "units": {
+      "distance": "meters",
+      "time": "seconds",
+      "mass": "kilograms",
+      "force": "newtons",
+      "description": "All physics calculations use SI units internally"
+    },
+
+    "worldBounds": {
+      "width": 1280,
+      "height": 720,
+      "allowWraparound": false,
+      "description": "World dimensions in meters (or pixels mapped to meters)"
+    }
+  },
+
+  "gravity": {
+    "description": "Gravitational acceleration affecting all projectiles and entities",
+
+    "base": {
+      "acceleration": -9.81,
+      "description": "Base gravity in m/s² (negative = downward)",
+      "direction": "down"
+    },
+
+    "stageModifiers": {
+      "description": "Each stage has unique gravity based on planetary conditions",
+      "lunaCrater": {
+        "gravity": -1.62,
+        "description": "Moon gravity (1/6 Earth)",
+        "multiplier": 0.165
+      },
+      "redFrontier": {
+        "gravity": -3.71,
+        "description": "Mars gravity (~38% Earth)",
+        "multiplier": 0.378
+      },
+      "gasgiantRim": {
+        "gravity": -24.79,
+        "description": "Jupiter-like gravity (2.5x Earth)",
+        "multiplier": 2.528
+      },
+      "iceMoon": {
+        "gravity": -1.35,
+        "description": "Europa-like moon (~14% Earth)",
+        "multiplier": 0.138
+      },
+      "magmaCore": {
+        "gravity": -11.15,
+        "description": "High-gravity volcanic world (1.14x Earth)",
+        "multiplier": 1.137
+      }
+    },
+
+    "localAnomalies": {
+      "description": "Temporary gravity modifications from gravitic weapons",
+      "enabled": true,
+      "maxAnomalyRadius": 50,
+      "decayRate": 0.1,
+      "stackingBehavior": "additive"
+    }
+  },
+
+  "wind": {
+    "description": "Horizontal wind forces affecting projectile trajectories",
+
+    "base": {
+      "enabled": true,
+      "accelerationRange": [-15, 15],
+      "description": "Wind as horizontal acceleration (m/s²)",
+      "changeMode": "perTurn"
+    },
+
+    "stageWindRanges": {
+      "description": "Wind strength varies by stage atmosphere",
+      "lunaCrater": {
+        "min": 0,
+        "max": 0,
+        "description": "No atmosphere, no wind"
+      },
+      "redFrontier": {
+        "min": -12,
+        "max": 12,
+        "description": "Dust storms, moderate wind"
+      },
+      "gasgiantRim": {
+        "min": -30,
+        "max": 30,
+        "description": "Intense atmospheric winds"
+      },
+      "iceMoon": {
+        "min": -8,
+        "max": 8,
+        "description": "Thin atmosphere, light winds"
+      },
+      "magmaCore": {
+        "min": -20,
+        "max": 20,
+        "description": "Convection currents, strong thermal winds"
+      }
+    },
+
+    "gusts": {
+      "enabled": true,
+      "frequency": 0.5,
+      "amplitude": 2.0,
+      "description": "Small oscillating wind variations added to base wind"
+    },
+
+    "turnBasedChanges": {
+      "changeChance": 0.3,
+      "maxDelta": 5.0,
+      "description": "30% chance wind changes by up to 5 m/s² per turn"
+    }
+  },
+
+  "drag": {
+    "description": "Air resistance affecting projectile velocity",
+
+    "enabled": true,
+    "formula": "F_drag = -dragCoefficient * velocity",
+    "description": "Linear drag model (good approximation for game)",
+
+    "atmosphereDensity": {
+      "description": "Atmospheric density affects drag strength",
+      "lunaCrater": 0.0,
+      "redFrontier": 0.2,
+      "gasgiantRim": 2.0,
+      "iceMoon": 0.1,
+      "magmaCore": 1.5
+    },
+
+    "projectileSpecific": {
+      "description": "Each projectile has its own drag coefficient (defined in weapons.json)",
+      "note": "Kinetic weapons have low drag (~0.1), Energy weapons have higher drag (~0.3)"
+    }
+  },
+
+  "collision": {
+    "description": "Collision detection and response parameters",
+
+    "detection": {
+      "method": "continuous",
+      "description": "Use continuous collision detection to prevent tunneling",
+      "raycastSteps": 5,
+      "minCollisionRadius": 0.1
+    },
+
+    "terrainCollision": {
+      "enabled": true,
+      "checkInterval": 1,
+      "description": "Check terrain collision every simulation step",
+      "penetrationTolerance": 0.5
+    },
+
+    "tankCollision": {
+      "enabled": true,
+      "collisionRadius": 1.5,
+      "description": "Tank collision uses radius around center point",
+      "bounceFactor": 0.0
+    },
+
+    "projectileCollision": {
+      "tankRadius": 1.5,
+      "terrainThreshold": 0.0,
+      "description": "Projectiles check collision with tanks and terrain"
+    }
+  },
+
+  "terrainDeformation": {
+    "description": "Rules for terrain modification from weapon impacts",
+
+    "enabled": true,
+    "method": "heightfield_modification",
+    "description": "Modify heightfield terrain based on explosion parameters",
+
+    "deformationTypes": {
+      "crater": {
+        "shape": "circular",
+        "falloff": "quadratic",
+        "direction": "down",
+        "description": "Standard explosion crater"
+      },
+      "massive_crater": {
+        "shape": "circular",
+        "falloff": "linear",
+        "direction": "down",
+        "multiplier": 2.0,
+        "description": "Quantum bomb creates larger, deeper crater"
+      },
+      "pull_crater": {
+        "shape": "circular",
+        "falloff": "quadratic",
+        "direction": "inward",
+        "description": "Gravitic pull creates compressed crater"
+      },
+      "raised_mound": {
+        "shape": "circular",
+        "falloff": "linear",
+        "direction": "up",
+        "description": "Anti-gravity creates raised terrain"
+      },
+      "precise_hole": {
+        "shape": "circular_small",
+        "falloff": "constant",
+        "direction": "down",
+        "description": "Phase disruptor creates small, precise hole"
+      }
+    },
+
+    "deformationLimits": {
+      "maxDepth": 50,
+      "maxHeight": 30,
+      "minFeatureSize": 2,
+      "smoothingPasses": 1,
+      "description": "Prevent extreme terrain deformation"
+    },
+
+    "multipliers": {
+      "quantum_bomb": 2.5,
+      "gravitic_weapon": 1.8,
+      "kinetic_weapon": 1.0,
+      "energy_weapon": 0.8,
+      "phase_weapon": 0.5,
+      "description": "Weapon categories have different deformation strengths"
+    }
+  },
+
+  "hoverMechanics": {
+    "description": "Physics rules for hover tank movement and stability",
+
+    "hoverHeight": {
+      "default": 0.5,
+      "min": 0.3,
+      "max": 0.7,
+      "description": "Height above terrain surface in meters"
+    },
+
+    "hoverStability": {
+      "baseStability": 1.0,
+      "slopeInfluence": 0.02,
+      "maxSlope": 45,
+      "description": "Steep slopes reduce shot stability",
+      "formula": "stability = baseStability * (1 - slopeFactor * slopeAngle / maxSlope)"
+    },
+
+    "hoverEffects": {
+      "lowHover": {
+        "height": 0.3,
+        "windResistance": 0.7,
+        "shotAccuracy": 1.05,
+        "movementSpeed": 0.9,
+        "description": "Low hover = less wind, better accuracy, slower"
+      },
+      "normalHover": {
+        "height": 0.5,
+        "windResistance": 1.0,
+        "shotAccuracy": 1.0,
+        "movementSpeed": 1.0,
+        "description": "Normal hover = balanced"
+      },
+      "highHover": {
+        "height": 0.7,
+        "windResistance": 1.3,
+        "shotAccuracy": 0.95,
+        "movementSpeed": 1.1,
+        "description": "High hover = more wind, worse accuracy, faster"
+      }
+    },
+
+    "terrainFollowing": {
+      "enabled": true,
+      "smoothingFactor": 0.8,
+      "maxAdjustmentPerFrame": 0.1,
+      "description": "Tanks smoothly follow terrain contours"
+    }
+  },
+
+  "projectilePhysics": {
+    "description": "Specific physics rules for projectile motion",
+
+    "velocityLimits": {
+      "minVelocity": 1.0,
+      "maxVelocity": 250.0,
+      "description": "Projectiles have speed caps defined per weapon"
+    },
+
+    "lifetime": {
+      "maxLifetime": 30.0,
+      "description": "Projectiles despawn after 30 seconds if no collision"
+    },
+
+    "trailPhysics": {
+      "maxTrailLength": 50,
+      "trailFadeRate": 0.05,
+      "trailWidth": 2.0,
+      "description": "Visual trail parameters"
+    },
+
+    "specialBehaviors": {
+      "cluster": {
+        "splitVelocityInheritance": 0.7,
+        "spreadRandomness": 0.1,
+        "description": "Cluster munitions inherit 70% of parent velocity"
+      },
+      "homing": {
+        "maxTurnRate": 5.0,
+        "accelerationFactor": 0.05,
+        "targetLeadPrediction": true,
+        "description": "Homing projectiles can turn 5° per second"
+      },
+      "phase": {
+        "phaseFrequency": 2.0,
+        "phaseDuration": 0.3,
+        "collisionBypass": true,
+        "description": "Phase projectiles phase in/out of terrain collision"
+      }
+    }
+  },
+
+  "explosionPhysics": {
+    "description": "Explosion force and damage propagation",
+
+    "damageCalculation": {
+      "baseDamage": "defined per weapon",
+      "falloffTypes": {
+        "constant": "Full damage within radius",
+        "linear": "Damage decreases linearly with distance",
+        "quadratic": "Damage decreases with distance squared"
+      }
+    },
+
+    "forcePropagation": {
+      "enabled": false,
+      "description": "Explosions can push tanks (disabled for turn-based gameplay)",
+      "impulseMultiplier": 0.0
+    },
+
+    "visualEffects": {
+      "shockwaveSpeed": 50.0,
+      "shockwaveRadius": "explosionRadius * 1.5",
+      "particleCount": "based on explosion size",
+      "lightFlash": true,
+      "description": "Visual explosion parameters"
+    }
+  },
+
+  "environmentalHazards": {
+    "description": "Stage-specific environmental hazards and effects",
+
+    "lavaStage": {
+      "lavaPools": {
+        "enabled": true,
+        "damagePerSecond": 20,
+        "ignitionChance": 1.0,
+        "description": "Lava pools deal continuous damage"
+      }
+    },
+
+    "iceStage": {
+      "slipperySurface": {
+        "enabled": true,
+        "frictionReduction": 0.3,
+        "description": "Ice reduces movement control"
+      }
+    },
+
+    "gasgiantStage": {
+      "strongWinds": {
+        "enabled": true,
+        "gustIntensity": 2.0,
+        "description": "Unpredictable wind gusts"
+      }
+    }
+  },
+
+  "specialFields": {
+    "description": "Persistent area effects from certain weapons",
+
+    "plasmaField": {
+      "duration": 3.0,
+      "radius": 25.0,
+      "damagePerSecond": 5.0,
+      "visualEffect": "plasma_burn",
+      "stackingBehavior": "replace"
+    },
+
+    "gravityAnomaly": {
+      "duration": 5.0,
+      "radius": 50.0,
+      "gravityModifier": 0.3,
+      "affectsProjectiles": true,
+      "affectsTanks": true,
+      "visualEffect": "gravity_distortion"
+    },
+
+    "antiGravityZone": {
+      "duration": 2.5,
+      "radius": 35.0,
+      "launchForce": 15.0,
+      "affectsProjectiles": true,
+      "affectsTanks": true,
+      "visualEffect": "anti_grav_field"
+    }
+  },
+
+  "balancingParameters": {
+    "description": "Global physics tuning parameters",
+
+    "globalMultipliers": {
+      "gravityMultiplier": 1.0,
+      "windMultiplier": 1.0,
+      "dragMultiplier": 1.0,
+      "velocityMultiplier": 1.0,
+      "description": "Global scaling for all physics parameters"
+    },
+
+    "difficultyAdjustments": {
+      "easy": {
+        "gravityMultiplier": 0.8,
+        "windMultiplier": 0.6,
+        "description": "Easier physics, less wind/gravity effects"
+      },
+      "normal": {
+        "gravityMultiplier": 1.0,
+        "windMultiplier": 1.0,
+        "description": "Standard physics"
+      },
+      "hard": {
+        "gravityMultiplier": 1.2,
+        "windMultiplier": 1.5,
+        "description": "Harder physics, stronger effects"
+      }
+    }
+  },
+
+  "debugOptions": {
+    "description": "Debug visualization and testing options",
+
+    "showTrajectoryPreview": true,
+    "showWindVector": true,
+    "showGravityField": false,
+    "showCollisionBoxes": false,
+    "showPhysicsDebugInfo": false,
+    "slowMotionFactor": 1.0,
+    "description": "Toggle debug visualizations for development"
+  }
+}

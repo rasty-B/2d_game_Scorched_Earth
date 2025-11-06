@@ -1,0 +1,148 @@
+{
+  "id": "MVP_STAGE_01",
+  "name": "Broken Arch Basin",
+  "description": "A shattered bridge spans a toxic basin. Master the skill shot through the cave or rain fire from above.",
+  "worldWidth": 2400,
+  "worldHeight": 1350,
+  "cameraConstraints": {
+    "minX": 0,
+    "maxX": 2400,
+    "minY": 0,
+    "maxY": 1350
+  },
+  "terrain": {
+    "points": [
+      {"x": 0, "y": 880},
+      {"x": 150, "y": 840},
+      {"x": 350, "y": 820},
+      {"x": 550, "y": 830},
+      {"x": 750, "y": 900},
+      {"x": 900, "y": 940},
+      {"x": 1050, "y": 960},
+      {"x": 1200, "y": 940},
+      {"x": 1350, "y": 920},
+      {"x": 1500, "y": 930},
+      {"x": 1650, "y": 880},
+      {"x": 1850, "y": 840},
+      {"x": 2050, "y": 820},
+      {"x": 2250, "y": 830},
+      {"x": 2400, "y": 870}
+    ]
+  },
+  "caveCeiling": [
+    {
+      "from": {"x": 900, "y": 780},
+      "to": {"x": 1125, "y": 720}
+    },
+    {
+      "from": {"x": 1125, "y": 720},
+      "to": {"x": 1375, "y": 720}
+    },
+    {
+      "from": {"x": 1375, "y": 720},
+      "to": {"x": 1600, "y": 780}
+    }
+  ],
+  "hazards": [
+    {
+      "id": "gas_basin_center",
+      "type": "gas",
+      "center": {"x": 1125, "y": 980},
+      "radius": 260,
+      "intensity": 0.7,
+      "pulse": true,
+      "tickRate": 1.0,
+      "damagePerTick": 5.0,
+      "duration": -1
+    },
+    {
+      "id": "ion_mid_band",
+      "type": "ion",
+      "center": {"x": 1200, "y": 520},
+      "radius": 700,
+      "intensity": 0.4,
+      "noiseAmplitude": 0.15,
+      "duration": -1
+    },
+    {
+      "id": "emp_right_node",
+      "type": "emp",
+      "center": {"x": 1900, "y": 820},
+      "radius": 220,
+      "intensity": 1.0,
+      "pulse": true,
+      "duration": -1
+    }
+  ],
+  "spawns": [
+    {
+      "id": "P1_left_plateau",
+      "position": {"x": 350, "y": 820},
+      "radius": 40,
+      "playerCount": [1, 2, 3, 4],
+      "difficulty": "easy",
+      "notes": "Beginner-friendly spawn with good sightlines and shelter"
+    },
+    {
+      "id": "P2_right_plateau",
+      "position": {"x": 2050, "y": 820},
+      "radius": 40,
+      "playerCount": [2, 3, 4],
+      "difficulty": "medium",
+      "notes": "High ground advantage but more exposed; near EMP zone"
+    },
+    {
+      "id": "P3_cave_entrance",
+      "position": {"x": 900, "y": 900},
+      "radius": 35,
+      "playerCount": [3, 4],
+      "difficulty": "hard",
+      "notes": "Near toxic zone; central position for multi-angle attacks"
+    },
+    {
+      "id": "P4_right_slope_mid",
+      "position": {"x": 1750, "y": 860},
+      "radius": 35,
+      "playerCount": [4],
+      "difficulty": "medium",
+      "notes": "Mid-slope spawn between arch and plateau"
+    }
+  ],
+  "background": {
+    "skyGradientTop": "#050814",
+    "skyGradientBottom": "#0b101b",
+    "starDensity": 0.35,
+    "hazeColor": "rgba(0, 183, 196, 0.18)",
+    "parallax": [
+      {
+        "type": "stars",
+        "scrollSpeed": 0.1,
+        "opacity": 0.4,
+        "yOffset": -100
+      },
+      {
+        "type": "planets",
+        "scrollSpeed": 0.3,
+        "opacity": 0.6,
+        "yOffset": -200
+      }
+    ]
+  },
+  "metadata": {
+    "recommendedPlayers": [2, 3, 4],
+    "difficulty": "beginner",
+    "estimatedDuration": 5,
+    "requiredMechanics": [
+      "basic_firing",
+      "trajectory_prediction",
+      "hazard_avoidance"
+    ],
+    "author": "Scorched Earth Dev Team",
+    "version": "1.0.0"
+  },
+  "physicsOverrides": {
+    "gravity": -8.0,
+    "windRange": [-12, 12],
+    "windChangeFrequency": 0.3
+  }
+}

@@ -382,4 +382,227 @@ export class Renderer {
         this.ctx.fillStyle = color;
         this.ctx.fillText(text, x, y);
     }
+
+    /**
+     * Draw level sky (from level background config)
+     */
+    drawLevelSky(background) {
+        if (!background || !background.gradientStops) {
+            // Default gradient
+            const gradient = this.ctx.createLinearGradient(0, 0, 0, this.height);
+            gradient.addColorStop(0, '#050814');
+            gradient.addColorStop(1, '#0b101b');
+            this.ctx.fillStyle = gradient;
+            this.ctx.fillRect(0, 0, this.width, this.height);
+            return;
+        }
+
+        const gradient = this.ctx.createLinearGradient(0, 0, 0, this.height);
+        background.gradientStops.forEach(stop => {
+            gradient.addColorStop(stop.position, stop.color);
+        });
+
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(0, 0, this.width, this.height);
+
+        // Draw stars if specified
+        if (background.stars) {
+            this.drawStars();
+        }
+    }
+
+    /**
+     * Draw level terrain from polyline
+     */
+    drawLevelTerrain(levelManager) {
+        const points = levelManager.getTerrainPolyline();
+        if (points.length < 2) return;
+
+        const ctx = this.ctx;
+
+        // Create filled polygon
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+
+        // Close to bottom
+        ctx.lineTo(points[points.length - 1].x, this.height);
+        ctx.lineTo(points[0].x, this.height);
+        ctx.closePath();
+
+        // Fill with gradient
+        const gradient = ctx.createLinearGradient(0, this.height * 0.6, 0, this.height);
+        gradient.addColorStop(0, '#13181d');
+        gradient.addColorStop(1, '#06090c');
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Draw edge highlight
+        ctx.strokeStyle = '#1a2530';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.stroke();
+    }
+
+    /**
+     * Draw cave ceiling segments
+     */
+    drawCaveCeiling(ceilingSegments) {
+        if (!ceilingSegments || ceilingSegments.length === 0) return;
+
+        const ctx = this.ctx;
+
+        for (const segment of ceilingSegments) {
+            // Draw ceiling surface
+            ctx.strokeStyle = '#0d1117';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(segment.from.x, segment.from.y);
+            ctx.lineTo(segment.to.x, segment.to.y);
+            ctx.stroke();
+
+            // Draw glow underneath
+            const gradient = ctx.createLinearGradient(
+                (segment.from.x + segment.to.x) / 2,
+                segment.from.y,
+                (segment.from.x + segment.to.x) / 2,
+                segment.from.y + 50
+            );
+            gradient.addColorStop(0, 'rgba(0, 180, 200, 0.2)');
+            gradient.addColorStop(1, 'rgba(0, 180, 200, 0)');
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(segment.from.x, segment.from.y, segment.to.x - segment.from.x, 50);
+        }
+    }
+
+    /**
+     * Draw hazard zones
+     */
+    drawHazards(hazards) {
+        if (!hazards || hazards.length === 0) return;
+
+        const time = Date.now() / 1000;
+
+        for (const hazard of hazards) {
+            if (hazard.type === 'gas') {
+                this.drawGasHazard(hazard, time);
+            } else if (hazard.type === 'ion') {
+                this.drawIonHazard(hazard, time);
+            } else if (hazard.type === 'emp') {
+                this.drawEMPHazard(hazard, time);
+            }
+        }
+    }
+
+    /**
+     * Draw gas hazard (toxic cloud)
+     */
+    drawGasHazard(hazard, time) {
+        const ctx = this.ctx;
+        const pulseScale = hazard.pulse ? 1.0 + Math.sin(time * 2) * 0.1 : 1.0;
+        const radius = hazard.radius * pulseScale;
+
+        const gradient = ctx.createRadialGradient(
+            hazard.center.x, hazard.center.y, radius * 0.1,
+            hazard.center.x, hazard.center.y, radius
+        );
+
+        const alpha = 0.25 + 0.2 * hazard.intensity;
+        gradient.addColorStop(0.0, `rgba(0, 255, 180, ${alpha})`);
+        gradient.addColorStop(0.7, `rgba(0, 120, 80, ${alpha * 0.7})`);
+        gradient.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(hazard.center.x, hazard.center.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    /**
+     * Draw ion storm hazard
+     */
+    drawIonHazard(hazard, time) {
+        const ctx = this.ctx;
+
+        // Draw ion field
+        const gradient = ctx.createRadialGradient(
+            hazard.center.x, hazard.center.y, 0,
+            hazard.center.x, hazard.center.y, hazard.radius
+        );
+
+        const alpha = 0.15 * hazard.intensity;
+        gradient.addColorStop(0.0, `rgba(150, 100, 255, ${alpha})`);
+        gradient.addColorStop(0.7, `rgba(80, 50, 180, ${alpha * 0.5})`);
+        gradient.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(hazard.center.x, hazard.center.y, hazard.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw animated streaks
+        ctx.strokeStyle = `rgba(150, 100, 255, ${0.4 * hazard.intensity})`;
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 5; i++) {
+            const angle = time * 0.5 + (i * Math.PI * 2 / 5);
+            const x1 = hazard.center.x + Math.cos(angle) * hazard.radius * 0.3;
+            const y1 = hazard.center.y + Math.sin(angle) * hazard.radius * 0.3;
+            const x2 = hazard.center.x + Math.cos(angle) * hazard.radius * 0.8;
+            const y2 = hazard.center.y + Math.sin(angle) * hazard.radius * 0.8;
+
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+    }
+
+    /**
+     * Draw EMP hazard node
+     */
+    drawEMPHazard(hazard, time) {
+        const ctx = this.ctx;
+        const pulseScale = hazard.pulse ? 1.0 + Math.sin(time * 3) * 0.15 : 1.0;
+        const radius = hazard.radius * pulseScale;
+
+        // Draw EMP field
+        const gradient = ctx.createRadialGradient(
+            hazard.center.x, hazard.center.y, 0,
+            hazard.center.x, hazard.center.y, radius
+        );
+
+        const alpha = 0.2 * hazard.intensity;
+        gradient.addColorStop(0.0, `rgba(0, 200, 255, ${alpha})`);
+        gradient.addColorStop(0.7, `rgba(0, 100, 200, ${alpha * 0.5})`);
+        gradient.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(hazard.center.x, hazard.center.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw rotating spikes
+        ctx.strokeStyle = `rgba(0, 200, 255, ${0.6 * hazard.intensity})`;
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 8; i++) {
+            const angle = time * 2 + (i * Math.PI * 2 / 8);
+            const x1 = hazard.center.x + Math.cos(angle) * 10;
+            const y1 = hazard.center.y + Math.sin(angle) * 10;
+            const x2 = hazard.center.x + Math.cos(angle) * radius * 0.7;
+            const y2 = hazard.center.y + Math.sin(angle) * radius * 0.7;
+
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+    }
 }

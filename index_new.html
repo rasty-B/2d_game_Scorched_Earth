@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scorched Earth - Energy-Based Artillery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #0a0e1a;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameCanvas {
+            border: 2px solid #1a2530;
+            background: #000;
+        }
+
+        /* HUD Overlay */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            display: none;
+        }
+
+        /* Top Info Bar */
+        #top-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 14, 26, 0.8);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 1px solid #1a2530;
+        }
+
+        #current-player {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4ecca3;
+        }
+
+        #wind-indicator {
+            font-size: 18px;
+            color: #00d4ff;
+        }
+
+        #wind-arrow {
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 24px;
+        }
+
+        /* Resource Bars (Left Side) */
+        #resource-bars {
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            width: 250px;
+            background: rgba(10, 14, 26, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #1a2530;
+        }
+
+        .resource-bar {
+            margin-bottom: 15px;
+        }
+
+        .resource-bar:last-child {
+            margin-bottom: 0;
+        }
+
+        .resource-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .bar-container {
+            width: 100%;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid #1a2530;
+        }
+
+        .bar-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        #energy-fill {
+            background: linear-gradient(90deg, #00d4ff, #00a8cc);
+        }
+
+        #heat-fill {
+            background: linear-gradient(90deg, #ff4500, #ff8c00);
+        }
+
+        #hp-fill {
+            background: linear-gradient(90deg, #4ecca3, #2d8c68);
+        }
+
+        /* Weapon Selection (Right Side) */
+        #weapon-panel {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            width: 280px;
+            background: rgba(10, 14, 26, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #1a2530;
+            pointer-events: all;
+        }
+
+        .weapon-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #00d4ff;
+        }
+
+        .weapon-slot {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            border: 1px solid #1a2530;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .weapon-slot:hover {
+            background: rgba(78, 204, 163, 0.2);
+            border-color: #4ecca3;
+        }
+
+        .weapon-slot.active {
+            background: rgba(78, 204, 163, 0.3);
+            border-color: #4ecca3;
+        }
+
+        .weapon-name {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .weapon-cost {
+            font-size: 12px;
+            color: #00d4ff;
+        }
+
+        .weapon-heat {
+            font-size: 12px;
+            color: #ff8c00;
+        }
+
+        /* Bottom Controls */
+        #bottom-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 14, 26, 0.9);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 1px solid #1a2530;
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .control-item {
+            text-align: center;
+        }
+
+        .control-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .control-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4ecca3;
+        }
+
+        #power-meter {
+            width: 150px;
+        }
+
+        /* Game Menu */
+        #game-menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 14, 26, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            border: 2px solid #1a2530;
+            text-align: center;
+            pointer-events: all;
+        }
+
+        #game-menu.hidden {
+            display: none;
+        }
+
+        #game-menu h2 {
+            font-size: 36px;
+            margin-bottom: 30px;
+            color: #4ecca3;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, #4ecca3, #2d8c68);
+            color: #fff;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 204, 163, 0.4);
+        }
+
+        .primary-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Game Over */
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 14, 26, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            border: 2px solid #1a2530;
+            text-align: center;
+            pointer-events: all;
+        }
+
+        #game-over.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="1280" height="720"></canvas>
+
+        <!-- HUD Overlay -->
+        <div id="hud">
+            <!-- Top Info Bar -->
+            <div id="top-info">
+                <div>
+                    <span id="current-player">Tank 1</span>
+                </div>
+                <div>
+                    <span id="current-weapon">Rail Shot</span>
+                </div>
+                <div id="wind-indicator">
+                    <span>Wind: </span>
+                    <span id="wind-value">0.0</span>
+                    <span id="wind-arrow">→</span>
+                </div>
+            </div>
+
+            <!-- Resource Bars (Left) -->
+            <div id="resource-bars">
+                <div class="resource-bar">
+                    <div class="resource-label">
+                        <span>ENERGY</span>
+                        <span id="energy-value">100/100</span>
+                    </div>
+                    <div class="bar-container">
+                        <div id="energy-fill" class="bar-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div class="resource-bar">
+                    <div class="resource-label">
+                        <span>HEAT</span>
+                        <span id="heat-value">0/100</span>
+                    </div>
+                    <div class="bar-container">
+                        <div id="heat-fill" class="bar-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="resource-bar">
+                    <div class="resource-label">
+                        <span>HP</span>
+                        <span id="hp-value">100/100</span>
+                    </div>
+                    <div class="bar-container">
+                        <div id="hp-fill" class="bar-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weapon Panel (Right) -->
+            <div id="weapon-panel">
+                <div class="weapon-title">WEAPONS</div>
+                <div class="weapon-slot active" data-weapon="0">
+                    <div>
+                        <div class="weapon-name">Rail Shot</div>
+                        <span class="weapon-cost">10E</span> | <span class="weapon-heat">5H</span>
+                    </div>
+                    <div style="font-size: 18px; color: #4ecca3;">1</div>
+                </div>
+                <div class="weapon-slot" data-weapon="1">
+                    <div>
+                        <div class="weapon-name">Plasma Arc</div>
+                        <span class="weapon-cost">25E</span> | <span class="weapon-heat">15H</span>
+                    </div>
+                    <div style="font-size: 18px; color: #e74c3c;">2</div>
+                </div>
+            </div>
+
+            <!-- Bottom Controls -->
+            <div id="bottom-controls">
+                <div class="control-item">
+                    <div class="control-label">ANGLE</div>
+                    <div class="control-value" id="angle-value">-45°</div>
+                </div>
+                <div class="control-item" id="power-meter">
+                    <div class="control-label">POWER</div>
+                    <div class="bar-container">
+                        <div id="power-fill" class="bar-fill" style="width: 0%; background: linear-gradient(90deg, #f39c12, #e74c3c);"></div>
+                    </div>
+                    <div class="control-value" id="power-value">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Menu -->
+        <div id="game-menu">
+            <h2>SCORCHED EARTH</h2>
+            <p style="font-size: 18px; margin-bottom: 30px;">Energy-Based Artillery Combat</p>
+            <button id="start-game" class="primary-btn">START GAME</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over" class="hidden">
+            <h2>Game Over!</h2>
+            <h3 id="winner-text"></h3>
+            <button id="play-again" class="primary-btn">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Load game -->
+    <script type="module">
+        import { Game } from './src/game/GameNew.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('=== Scorched Earth - Energy Edition ===');
+
+            const canvas = document.getElementById('gameCanvas');
+            const game = new Game(canvas);
+
+            // Make accessible for debugging
+            window.game = game;
+        });
+    </script>
+</body>
+</html>

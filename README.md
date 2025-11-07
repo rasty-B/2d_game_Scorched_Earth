@@ -36,6 +36,61 @@ http://localhost:8000/index_new.html
 
 ---
 
+## 📸 Screenshots & Gameplay
+
+### Main Menu
+<p align="center">
+  <img src="screenshots/01_menu.png" alt="Game Menu" width="800"/>
+  <br/>
+  <em>Clean, modern menu with stage selection</em>
+</p>
+
+### Energy-Based Combat
+<p align="center">
+  <img src="screenshots/02_gameplay_start.png" alt="Gameplay Overview" width="800"/>
+  <br/>
+  <em>Turn-based artillery with energy/heat management - Left: Resource bars (Energy/Heat/HP), Right: Weapon costs</em>
+</p>
+
+### Firing Weapons
+<p align="center">
+  <img src="screenshots/03_firing_weapon.png" alt="Weapon Firing" width="800"/>
+  <br/>
+  <em>Aim with mouse drag - Power meter shows charge, trajectory preview helps accuracy</em>
+</p>
+
+### Explosive Impact
+<p align="center">
+  <img src="screenshots/04_explosion.png" alt="Explosion Effects" width="800"/>
+  <br/>
+  <em>Multi-layer particle system: Fire (orange), smoke (gray), debris (chunks)</em>
+</p>
+
+### Resource Management
+<p align="center">
+  <img src="screenshots/05_energy_system.png" alt="Energy System" width="800"/>
+  <br/>
+  <em>Energy bar (cyan) and Heat bar (orange) - Heat reduces energy regeneration efficiency</em>
+</p>
+
+### Environmental Hazards
+<p align="center">
+  <img src="screenshots/06_hazards.png" alt="Environmental Hazards" width="800"/>
+  <br/>
+  <em>Animated hazards: Toxic gas (green pulsing), Ion storm (purple streaks), EMP zones (cyan spikes)</em>
+</p>
+
+### Weapon Arsenal
+<p align="center">
+  <img src="screenshots/07_weapon_panel.png" alt="Weapon Selection" width="800"/>
+  <br/>
+  <em>10 weapons with energy costs (E) and heat generation (H) - Strategic choices matter</em>
+</p>
+
+> **Note**: Screenshots coming soon! See [SCREENSHOTS.md](SCREENSHOTS.md) for capture instructions. The game is fully playable now - visuals accurately represent the implemented features.
+
+---
+
 ## ✨ New Features (Version 2.0)
 
 ### 🎯 Energy-Based Combat System
